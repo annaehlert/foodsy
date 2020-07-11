@@ -1,0 +1,20 @@
+{% extends 'common.html' %}
+
+{% block title %} Panel {% endblock %}
+
+{% block content %}
+<div class="container">
+<div class="jumbotron display-4">
+
+    <h1 class="display-4">Witaj!</h1>
+    <p class="lead text-center">Uwielbiasz gotować i chcesz się tym podzielić z innymi?</p>
+    <p class="lead text-center">Nie masz pomysłu na śniadanie?</p>
+    <p class="lead text-center">Nie masz pomysłu na obiad?</p>
+    <p class="lead text-center">Nie masz pomysłu na kolację?</p>
+    <p class="lead text-center">Foodsy to platforma łącząca, ludzi, którzy kochają gotować, jeść lub po prostu potrzebują inspiracji kulinarnej.</p>
+
+
+    <hr class="my-4">
+    <a class="btn btn-primary btn-lg center" href="{% url 'login' %}" role="button">Zaloguj się</a>
+    <a class="btn btn-info btn-lg center" href="{% url 'registration' %}" role="button">Zarejestruj się</a>
+{% endblock %}

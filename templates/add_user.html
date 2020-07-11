@@ -1,0 +1,15 @@
+{% extends 'common.html' %}
+{% load crispy_forms_tags %}
+
+
+{% block title %} Dodaj użytkownika {% endblock %}
+
+{% block content %}
+    <form action="" method="POST" enctype='multipart/form-data'>
+        {% csrf_token %}
+        <strong><br>{{ form|crispy }}<br></strong>
+
+        <button type="submit">Dodaj</button>
+    {{ message }}
+    </form>
+{% endblock %}

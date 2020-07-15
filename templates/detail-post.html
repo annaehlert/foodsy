@@ -1,0 +1,25 @@
+{% extends 'common.html' %}
+{% load static %}
+
+{% block title %}Przepis{% endblock %}
+{% block content %}
+<div class="card text-center">
+  <div class="card-header">
+      <img src="{% get_static_prefix %}{{ post.image.url }}" alt="img" width="300px"
+                 height="300px"/>
+
+
+  </div>
+  <div class="card-body">
+    <h5 class="card-title">{{ post.description }}</h5>
+    <p class="card-text">{{ post.recipe }}</p>
+      <p class="card-text text-right">Data publikacji: {{ post.date }}</p>
+      <p>Autor:
+<a class="card-text text-right" href="{% url 'your-profile' user_id=post.author.user_id_id %}">{{ post.author.user_id.username }}</a>
+      </p>
+  </div>
+</div>
+
+
+{% endblock %}
+{#    ul>li*5>a stworzy 5 li w liście #}

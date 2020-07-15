@@ -1,0 +1,39 @@
+{% extends 'profile-base.html' %}
+{% load static %}
+
+
+
+
+{% block endcontent %}
+
+
+
+{% for post in posts %}
+<div data-spy="scroll" data-target="#navbar-example2" data-offset="0">
+      <p>{{ post.date }}</p>
+
+<div class="media">
+    <span class="media-left">
+        <a href="{% url 'details' post_id=post.id %}" >
+            <img class="pull-left" src="{% get_static_prefix %}{{ post.image.url }}" alt="img" width="300px" height="300px"/></a>
+    </span>
+    <div class="media-body" style="padding-left:4.00em;">
+            <h1 class="media-heading" id="post{{ post.id }}">{{ post.description }}</h1>
+  <p>{{ post.recipe }}</p>
+  <p>Autor: {{ post }}</p>
+    </div>
+    </div>
+<br>
+
+    <br>
+{% endfor %}
+</div>
+</div>
+
+
+
+
+
+
+
+{% endblock %}

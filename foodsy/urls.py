@@ -16,12 +16,24 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
-from general.views import LoginView, MainPageView, AddUserView, logout_view
+from general.views import LoginView, MainPageView, AddUserView, logout_view, ChangePasswordView, ProfileView, \
+    ProfilePictureEdit, AddPostView, EditPostView, DeletePostView, DetailPostView, OtherPostsView, AllProfileView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('', MainPageView.as_view(), name="index"),
     path('login/', LoginView.as_view(), name="login"),
     path('logout/', logout_view, name="logout"),
-    path('', MainPageView.as_view(), name="index"),
+    path('reset_password/<int:user_id>', ChangePasswordView.as_view(), name="change-password"),
     path('registration/', AddUserView.as_view(), name="registration"),
+    path('your-profile/<int:user_id>', ProfileView.as_view(), name="your-profile"),
+    path('your-profile/<int:user_id>/change-photo', ProfilePictureEdit.as_view(), name="change-photo"),
+    path('your-profile/<int:user_id>/add-post', AddPostView.as_view(), name="add-post"),
+    path('your-profile/<int:user_id>/edit-post/<int:post_id>', EditPostView.as_view(), name="edit-post"),
+    path('your-profile/<int:user_id>/delete-post/<int:post_id>', DeletePostView.as_view(), name="delete-post"),
+    path('details/<int:post_id>', DetailPostView.as_view(), name="details"),
+    path('your-profile/<int:user_id>/other-posts/', OtherPostsView.as_view(), name="others"),
+    path('profiles/', AllProfileView.as_view(), name="profiles"),
+
 ]
+

@@ -1,12 +1,27 @@
 {% extends 'common.html' %}
+{% load static %}
 
 {% block title %} Panel {% endblock %}
 
 {% block content %}
-<div class="container">
+    <div class="container">
+{% if user.is_authenticated %}
+      <ul class="nav nav-tabs">
+  <li class="nav-item">
+    <a class="nav-link active" href="{% url 'your-profile' user_id=user.id %}">Twój profil</a>
+  </li>
+            <li class="nav-item">
+    <a class="nav-link active" href="{% url 'profiles' %}">Wszyscy</a>
+  </li>
+{#        <img class="rounded-circle z-depth-6" src="{% get_static_prefix %}{{ user.user.avatar.url }}" alt="img" width="50px" height="50px" />#}
+</ul>
+    {% endif %}
+
 <div class="jumbotron display-4">
 
-    <h1 class="display-4">Witaj!</h1>
+
+{#    <h1 class="text-center">FOODSY</h1>#}
+
     <p class="lead text-center">Uwielbiasz gotować i chcesz się tym podzielić z innymi?</p>
     <p class="lead text-center">Nie masz pomysłu na śniadanie?</p>
     <p class="lead text-center">Nie masz pomysłu na obiad?</p>
@@ -15,6 +30,67 @@
 
 
     <hr class="my-4">
-    <a class="btn btn-primary btn-lg center" href="{% url 'login' %}" role="button">Zaloguj się</a>
-    <a class="btn btn-info btn-lg center" href="{% url 'registration' %}" role="button">Zarejestruj się</a>
+    {% if not user.is_authenticated %}
+        <div class="col text-center">
+    <a class="btn btn-primary btn-lg" href="{% url 'login' %}" role="button">Zaloguj się</a>
+    <a class="btn btn-info btn-lg" href="{% url 'registration' %}" role="button">Zarejestruj się</a>
+                    </div>
+        {% else %}
+
+                 <form method="get">
+                     <h5 class="text-center">
+                    {{ filter.form }}
+                    <button type="submit" class="btn btn-secondary">Szukaj</button>
+                </h5>
+                 </form>
+
+        </div>
+
+    {% endif %}
+        </div>
+
+
+    <div class="container-fluid bg-4 text-center">
+
+
+<div class="row h-100 justify-content-center align-items-center">
+                  {% for post in filter.qs %}
+
+                      <div class="card" style="width: 15rem;">
+                      <a href="{% url 'details' post_id=post.id %}">
+        <img src="{% get_static_prefix %}{{ post.image.url }}" class="card-img-top" alt="{{ post.description }}" width="200px" height="200px">
+  </a>
+                          <div class="card-body">
+    <h5 class="card-title">{{ post.description}}</h5>
+
+    <p class="card-text" style="height: 3rem;"> {% for category in post.category.all %} #{{ category.category }} {% endfor %}</p>
+
+
+  </div>
+</div>
+
+{#  <div class="col-xs-6 col-sm-3">#}
+{##}
+{#    <div class="thumbnail">#}
+{#      <a href="{% url 'details' post_id=post.id %}" >#}
+{#        <img src="{% get_static_prefix %}{{ post.image.url }}" alt="{{ post.description }}" width="200px" height="200px">#}
+{#              </a>#}
+{#          <div class="caption">#}
+{#          <p>{{ post.description}}</p>#}
+{#          <p>{{ post }}</p>#}
+{#        </div>#}
+{##}
+{#    </div>#}
+{#  {% endif %}#}
+{#  </div>#}
+
+                  {% empty %}
+        <div class="card-block px-lg-5"><p>Nie znaleźliśmy takiego przepisu</p></div>
+        {% endfor %}
+</div>
+
+
+
+    </div>
+
 {% endblock %}

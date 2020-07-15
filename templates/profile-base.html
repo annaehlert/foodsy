@@ -1,0 +1,81 @@
+{% extends 'common.html' %}
+{% load static %}
+
+{% block title %}Twój profil{% endblock %}
+
+
+{% block lead_content %}
+<div class="text-right">
+    <a class="btn btn-link" href="{% url 'change-password' user_id=user.id %}">Zmień hasło</a>
+    <a class="btn btn-link" href="{% url 'logout' %}">Wyloguj</a>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<div class="jumbotron jumbotron-fluid">
+  <div class="container">
+      <div class="row">
+          <div class="col-sm">
+
+  <p class="lead">
+<img  class="border border-secondary" src="{% get_static_prefix %}{{ user_photo.url }}" alt="img" width="170px" height="170px" />
+
+    <div>
+    <a class="btn btn-secondary btn-sm" href="{% url 'change-photo' user_id=user.id %}">Zmień zdjęcie profilowe</a>
+    </div>
+          </div>
+          <div class="col-sm">
+                <h3 class="display-4 text-right">{{ user.username }}</h3>
+              <h5 class="text-right">{{ user.first_name }} {{ user.last_name }}</h5>
+              <div>
+              <div>
+                            <p style="text-align:right" class="text-secondary">Ostatnie logowanie: {{ user.last_login }}</p>
+              </div>
+
+          </div>
+          </div>
+</div>
+    </div>
+</div>
+<div class="text-right">
+      <a class="btn btn-outline-secondary" href="{% url 'add-post' user_id=user.id %}">Dodaj nowy post</a>
+</div>
+  <ul class="nav nav-tabs">
+  <li class="nav-item">
+    <a class="nav-link active" href="{% url 'your-profile' user_id=user.id %}">Moje przepisy</a>
+  </li>
+     <li class="nav-item">
+    <a class="nav-link active" href="{% url 'others' user_id=user.id %}">Przepisane przepisy</a>
+  </li>
+      <li class="nav-item">
+    <a class="nav-link active" href="#">Obserwowani kucharze</a>
+  </li>
+        <li class="nav-item">
+    <a class="nav-link active" href="#">Obserwujący kucharze</a>
+  </li>
+
+</ul>
+
+    <nav id="navbar-example2" class="navbar navbar-light bg-light">
+    <p class="navbar-brand"></p>
+  <ul class="nav nav-pills">
+
+      <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Wyszukaj</a>
+
+        <div class="dropdown-menu">
+{% for post in posts %}
+        <a class="dropdown-item" href="#post{{ post.id }}">{{ post.description }}</a>
+{% endfor %}
+      </div>
+    </li>
+  </ul>
+</nav>
+
+
+
+{% block endcontent %}
+    {% endblock %}
+</div>
+{% endblock %}

@@ -8,8 +8,8 @@ from django.views import View
 from django.shortcuts import render, redirect
 
 from general.filters import UserFilter, UserFilter_2
-from general.forms import LoginForm, AddUserForm, ChangePasswordForm, ChangePhotoForm, AddPostForm
-from general.models import Profile, Post, Category
+from general.forms import LoginForm, AddUserForm, ChangePasswordForm, ChangePhotoForm, AddPostForm, AddCommentForm
+from general.models import Profile, Post, Comment, Category
 from django.core.files.storage import default_storage
 
 
@@ -17,7 +17,6 @@ class MainPageView(View):
     def get(self, request):
         post_list = Post.objects.all()
         post_filter = UserFilter(request.GET, queryset=post_list)
-        categories = Category.objects.all()
         return render(request, "index.html",
                       {
                           # "posts": post_list,
@@ -205,15 +204,22 @@ class AddPostView(LoginRequiredMixin, View):
                 "user": user,
                 "form": form
             })
-        new_post = form.save(commit=False)
         image = request.FILES.get('image')
+        description = form.cleaned_data['description']
+        recipe = form.cleaned_data['recipe']
+        categories = form.cleaned_data['category']
         if image is not None:
             photo = image.name
             with default_storage.open('static/media/' + photo, 'wb+') as destination:
                 for chunk in image.chunks():
                     destination.write(chunk)
-        new_post.author_id = user_id
-        new_post.save()
+                    new_post = Post.objects.create(author_id=user_id, image=photo, description=description, recipe=recipe)
+                    for category in categories:
+                        new_category=Category.objects.create(category=category)
+                        new_category.post.add(new_post)
+        else:
+            messages.add_message(request, messages.WARNING, 'Dodaj zdjęcie.')
+
         messages.add_message(request, messages.SUCCESS, 'Post został dodany')
         return redirect(reverse('your-profile', kwargs={"user_id": user.id}))
 
@@ -223,7 +229,12 @@ class EditPostView(LoginRequiredMixin, View):
         profile = Profile.objects.get(user_id=user_id)
         user = User.objects.get(id=user_id)
         post = Post.objects.get(id=post_id)
-        form = AddPostForm(instance=post)
+        form = AddPostForm({
+            "image": post.image,
+            "description": post.description,
+            "recipe": post.recipe,
+            "category": post.category
+        })
         return render(request, "edit-post.html", {
             "user": user,
             "form": form,
@@ -234,22 +245,31 @@ class EditPostView(LoginRequiredMixin, View):
         profile = Profile.objects.get(user_id=user_id)
         user = User.objects.get(id=user_id)
         post = Post.objects.get(id=post_id)
-        form = AddPostForm(request.POST, request.FILES, instance=post)
+        form = AddPostForm(request.POST, request.FILES)
         if not form.is_valid():
             messages.add_message(request, messages.WARNING, 'Post nie został zmodyfikowany, spróbuj jeszcze raz')
             return render(request, "edit-post.html", {
                 "user": user,
                 "form": form
             })
-        post = form.save(commit=False)
         image = request.FILES.get('image')
+        description = form.cleaned_data['description']
+        recipe = form.cleaned_data['recipe']
+        categories = form.cleaned_data['category']
         if image is not None:
             photo = image.name
             with default_storage.open('static/media/' + photo, 'wb+') as destination:
                 for chunk in image.chunks():
                     destination.write(chunk)
-                    post.image = photo
-        form.save()
+
+            post.image = photo
+            post.description = description
+            post.recipe = recipe
+            post.category.clear
+            for category in categories:
+                new_category = Category.objects.create(category=category)
+                new_category.post.add(post)
+            post.save()
         messages.add_message(request, messages.SUCCESS, 'Post został zmodyfikowany')
         return redirect(reverse('your-profile', kwargs={"user_id": user.id}))
 
@@ -267,8 +287,10 @@ class DeletePostView(LoginRequiredMixin, View):
 class DetailPostView(View):
     def get(self, request, post_id):
         post = Post.objects.get(id=post_id)
+        comments = Comment.objects.filter(post_id=post_id)
         return render(request, "detail-post.html", {
-            "post": post
+            "post": post,
+            "comments": comments
         })
 
 
@@ -298,4 +320,34 @@ class AllProfileView(LoginRequiredMixin, View):
                       {
                           "filter": profile_filter
                       })
+
+
+class AddCommentView(LoginRequiredMixin, View):
+    def get(self, request, post_id):
+        form = AddCommentForm()
+        post = Post.objects.get(id=post_id)
+        user = post.author.user_id
+        return render(request, "add-comment.html", {
+            "form": form,
+            "post": post,
+            "user": user
+        })
+
+    def post(self, request, post_id):
+        form = AddCommentForm(request.POST)
+        post = Post.objects.get(id=post_id)
+        user = post.author.user_id
+        if not form.is_valid():  # muszę dodać message, że coś poszło nie tak!!
+            messages.add_message(request, messages.WARNING, 'Komentarz nie został dodany, spróbuj jeszcze raz')
+            return render(request, "add-comment.html", {
+                "user": user,
+                "form": form,
+                "post": post
+            })
+        new_comment = form.save(commit=False)
+        new_comment.author_id = user.id
+        new_comment.post_id = post_id
+        new_comment.save()
+        messages.add_message(request, messages.SUCCESS, 'Komentarz został dodany')
+        return redirect(reverse('details', kwargs={"post_id": post_id}))
 

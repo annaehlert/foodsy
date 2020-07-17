@@ -4,7 +4,7 @@
 {% block title %} Panel {% endblock %}
 
 {% block content %}
-    <div class="container">
+
 {% if user.is_authenticated %}
       <ul class="nav nav-tabs">
   <li class="nav-item">
@@ -13,12 +13,16 @@
             <li class="nav-item">
     <a class="nav-link active" href="{% url 'profiles' %}">Wszyscy</a>
   </li>
+                      <li class="nav-item">
+    <a class="nav-link active" href="{% url 'logout' %}">Wyloguj</a>
+  </li>
 {#        <img class="rounded-circle z-depth-6" src="{% get_static_prefix %}{{ user.user.avatar.url }}" alt="img" width="50px" height="50px" />#}
 </ul>
     {% endif %}
 
-<div class="jumbotron display-4">
-
+{#<div class="jumbotron display-4">#}
+    <div class="jumbotron jumbotron-fluid">
+    <div class="container">
 
 {#    <h1 class="text-center">FOODSY</h1>#}
 
@@ -64,6 +68,7 @@
     <h5 class="card-title">{{ post.description}}</h5>
 
     <p class="card-text" style="height: 3rem;"> {% for category in post.category.all %} #{{ category.category }} {% endfor %}</p>
+{#    <p class="card-text" style="height: 3rem;"> {{ post.category }}</p>#}
 
 
   </div>

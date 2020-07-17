@@ -8,8 +8,10 @@
     <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
 </head>
 <body>
-    <div class="container">
+
+
         {% block header %}
+                <div class="container">
         <div class="text-center mt-2">
         <a href="{% url 'index' %}" >
             <img src="{% static 'media/FOODSY(1).png' %}" alt="logo" width="30%"></a>
@@ -17,6 +19,8 @@
 {#                FOODSY#}
 {#            </h1>#}
         </div>
+        </div>
+
         {% endblock %}
     
         {% block lead_content %}
@@ -30,13 +34,9 @@
             </div>
         </div>
     </div>
-{% block footer %}
-    {% if user.is_authenticated %}
 
-    <div class="col text-center">
-        <a class="btn btn-primary btn-lg" href="{% url 'logout' %}">WYLOGUJ</a>
-        </div>
-    {% endif %}
+{% block footer %}
+
     {% endblock %}
     <script src="{% static 'js/jquery-3.5.1.slim.min.js' %}"></script>
     <script src="{% static 'js/popper.min.js' %}"></script>

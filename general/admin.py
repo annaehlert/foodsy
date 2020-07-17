@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from general.models import Profile, Post, Follower, Following, Comment, Category
+from general.models import Profile, Post, Follower, Following, Comment
 
 
 @admin.register(Profile)
@@ -27,7 +27,3 @@ class FollowingAdmin(admin.ModelAdmin):
 class CommentAdmin(admin.ModelAdmin):
     pass
 
-
-@admin.register(Category)
-class CategoryAdmin(admin.ModelAdmin):
-    pass

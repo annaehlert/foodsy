@@ -17,9 +17,47 @@
       <p>Autor:
 <a class="card-text text-right" href="{% url 'your-profile' user_id=post.author.user_id_id %}">{{ post.author.user_id.username }}</a>
       </p>
+      <a href="{% url 'add-comment' post_id=post.id %}" class="btn btn-outline-secondary">Dodaj komentarz</a>
   </div>
 </div>
+<div class="container">
 
+    <div class="row bootstrap snippets">
+    <div class="col-md-6 col-md-offset-2 col-sm-12">
+        <div class="comment-wrapper">
+            <div class="panel panel-info">
+                <div class="panel-heading">
+                    Komentarze
+                </div>
+
+                    <div class="clearfix"></div>
+                    <hr>
+                    <ul class="media-list">
+                        {% for comment in comments %}
+                        <li class="media">
+                            <span class="media-left">
+                            <a href="{% url 'your-profile' user_id=comment.author.user_id_id %}" class="pull-left">
+                                <img class="rounded-circle" src="{% get_static_prefix %}{{ comment.author.avatar.url }}" alt="{{ comment.author.user_id.username }}" width="40px" height="40px" />
+                            </a>
+                            </span>
+                            <div class="media-body" style="padding-left: 2.00em">
+                                <span class="text-muted pull-right">
+                                    <small class="text-muted">{{ comment.date }}</small>
+                                </span>
+                                <strong class="text-success">{{ comment.author.user_id.username }}</strong>
+                                <p>
+                                    {{ comment.content }}
+                                </p>
+                            </div>
+                        </li>
+                            {% endfor %}
+                    </ul>
+</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
 
 {% endblock %}
 {#    ul>li*5>a stworzy 5 li w liście #}

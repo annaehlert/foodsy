@@ -17,7 +17,8 @@ from django.contrib import admin
 from django.urls import path
 
 from general.views import LoginView, MainPageView, AddUserView, logout_view, ChangePasswordView, ProfileView, \
-    ProfilePictureEdit, AddPostView, EditPostView, DeletePostView, DetailPostView, OtherPostsView, AllProfileView
+    ProfilePictureEdit, AddPostView, EditPostView, DeletePostView, DetailPostView, OtherPostsView, AllProfileView, \
+    AddCommentView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -34,6 +35,8 @@ urlpatterns = [
     path('details/<int:post_id>', DetailPostView.as_view(), name="details"),
     path('your-profile/<int:user_id>/other-posts/', OtherPostsView.as_view(), name="others"),
     path('profiles/', AllProfileView.as_view(), name="profiles"),
+    path('details/<int:post_id>/add-comment', AddCommentView.as_view(), name="add-comment"),
+
 
 ]
 

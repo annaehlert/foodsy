@@ -1,7 +1,7 @@
 from django import forms
 from django.core.exceptions import ValidationError
 
-from general.models import Profile, Post
+from general.models import Profile, Post, Comment, CATEGORY
 
 
 class LoginForm(forms.Form):
@@ -31,9 +31,21 @@ class ChangePasswordForm(forms.Form):
 class ChangePhotoForm(forms.Form):
     image = forms.ImageField(label="Zdjęcie profilowe", required=False)
 
+#
+# class AddPostForm(forms.ModelForm):
+#     class Meta:
+#         model = Post
+#         fields = ['image', 'description', 'recipe']
 
-class AddPostForm(forms.ModelForm):
+class AddPostForm(forms.Form):
+    image = forms.ImageField(label="Zdjęcie")
+    description = forms.CharField(max_length=255, label="nazwa przepisu")
+    recipe = forms.CharField(label="przepis", widget=forms.Textarea)
+    category = forms.MultipleChoiceField(label="kategoria", choices=CATEGORY, widget=forms.CheckboxSelectMultiple)
+
+
+
+class AddCommentForm(forms.ModelForm):
     class Meta:
-        model = Post
-        fields = ['image', 'description', 'recipe']
-
+        model = Comment
+        fields = ['content']

@@ -3,21 +3,81 @@
 
 {% block title %}Przepis{% endblock %}
 {% block content %}
+
+        {% if user.is_authenticated %}
+      <ul class="nav nav-tabs">
+                    <li class="nav-item">
+            <div>
+                        <img  src="{% get_static_prefix %}{{ own.user.avatar.url }}" alt="img" width="50px" height="50px" />
+            </div>
+  </li>
+                                <li class="nav-item">
+    <a class="nav-link active" href="{% url 'index' %}">Główna</a>
+  </li>
+
+  <li class="nav-item">
+    <a class="nav-link active" href="{% url 'your-profile' user_id=user.id %}">Twój profil</a>
+  </li>
+            <li class="nav-item">
+    <a class="nav-link active" href="{% url 'profiles' %}">Wszyscy</a>
+  </li>
+                                <li class="nav-item">
+    <a class="nav-link active" href="{% url 'top' %}">Top 10</a>
+  </li>
+                      <li class="nav-item">
+    <a class="nav-link active" href="{% url 'logout' %}">Wyloguj</a>
+  </li>
+{#        <img class="rounded-circle z-depth-6" src="{% get_static_prefix %}{{ user.user.avatar.url }}" alt="img" width="50px" height="50px" />#}
+</ul>
+    {% endif %}
 <div class="card text-center">
+
   <div class="card-header">
+
       <img src="{% get_static_prefix %}{{ post.image.url }}" alt="img" width="300px"
                  height="300px"/>
+      <div>
+              <form action="" method="post">
+{% csrf_token %}
+ <p>
+     {% if remove %}
+    <input type="hidden" name="rewrite" value="delete">
+    <button type="submit" class="btn btn-secondary rounded-0 pt-0 pb-0 pr-4 pl-4"><strong>Wykreśl</button>
+         <div>Przepisało:{{ number }}</div>
+         {% elif mine %}
+         <div>Przepisało:{{ number }}</div>
+     {% else %}
+         <input type="hidden" name="rewrite" value="add">
+    <button type="submit" class="btn btn-outline-secondary rounded-0 pt-0 pb-0 pr-4 pl-4"><strong>Przepisz</button>
+         <div>Przepisało:{{ number }}</div>
+     {% endif %}
+ </p></form>
 
+
+{#              <form method="POST" action="" class="form" enctype="multipart/form-data">#}
+{#        {% csrf_token %}#}
+{#        {{ form }}#}
+{#    <a class="btn btn-outline-secondary" href="{% url 'details' post_id=post.id %}" >Przepisz</a>#}
+      </div>
 
   </div>
+      <div class="card-body">
+      	<div class="row h-100 justify-content-center align-items-center">
+		<div class="col-xs-6">
+                    <img class="rounded-circle" src="{% get_static_prefix %}{{ post.author.avatar.url }}" alt="{{ post.author.user_id.username }}" width="50px" height="50px"  />
+            		</div>
+		<div class="col-xs-6 text-left">
+<a class="card-text" href="{% url 'your-profile' user_id=post.author.user_id_id %}">{{ post.author.user_id.username }}</a><br>
+<small>Data publikacji: {{ post.date }}</small>
+        </div>
+
+      </div>
   <div class="card-body">
     <h5 class="card-title">{{ post.description }}</h5>
     <p class="card-text">{{ post.recipe }}</p>
-      <p class="card-text text-right">Data publikacji: {{ post.date }}</p>
-      <p>Autor:
-<a class="card-text text-right" href="{% url 'your-profile' user_id=post.author.user_id_id %}">{{ post.author.user_id.username }}</a>
-      </p>
-      <a href="{% url 'add-comment' post_id=post.id %}" class="btn btn-outline-secondary">Dodaj komentarz</a>
+
+
+
   </div>
 </div>
 <div class="container">
@@ -27,8 +87,9 @@
         <div class="comment-wrapper">
             <div class="panel panel-info">
                 <div class="panel-heading">
-                    Komentarze
+                          <a href="{% url 'add-comment' post_id=post.id %}" class="btn btn-outline-secondary">Dodaj komentarz</a>
                 </div>
+
 
                     <div class="clearfix"></div>
                     <hr>

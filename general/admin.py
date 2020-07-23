@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from general.models import Profile, Post, Follower, Following, Comment
+from general.models import Profile, Post, Following, Comment, Follower
 
 
 @admin.register(Profile)

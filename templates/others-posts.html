@@ -6,21 +6,21 @@
 
 {% block endcontent %}
 
+<div class="container">
 
-
-{% for post in posts %}
+{% for rewrite in rewrites %}
 <div data-spy="scroll" data-target="#navbar-example2" data-offset="0">
-      <p>{{ post.date }}</p>
+      <p>{{ rewrite.post.date }}</p>
 
 <div class="media">
     <span class="media-left">
-        <a href="{% url 'details' post_id=post.id %}" >
-            <img class="pull-left" src="{% get_static_prefix %}{{ post.image.url }}" alt="img" width="300px" height="300px"/></a>
+        <a href="{% url 'details' post_id=rewrite.post.id %}" >
+            <img class="pull-left" src="{% get_static_prefix %}{{ rewrite.post.image.url }}" alt="img" width="300px" height="300px"/></a>
     </span>
     <div class="media-body" style="padding-left:4.00em;">
-            <h1 class="media-heading" id="post{{ post.id }}">{{ post.description }}</h1>
-  <p>{{ post.recipe }}</p>
-  <p>Autor: {{ post }}</p>
+            <h1 class="media-heading" id="rewrite{{ rewrite.post.id }}">{{ rewrite.post.description }}</h1>
+  <p>{{ rewrite.post.recipe }}</p>
+  <p>Autor: {{ rewrite.post }}</p>
     </div>
     </div>
 <br>

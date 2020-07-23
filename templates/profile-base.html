@@ -5,13 +5,38 @@
 
 
 {% block lead_content %}
-<div class="text-right">
-    <a class="btn btn-link" href="{% url 'change-password' user_id=user.id %}">Zmień hasło</a>
-    <a class="btn btn-link" href="{% url 'logout' %}">Wyloguj</a>
-</div>
+
 {% endblock %}
 
 {% block content %}
+    {% if user.is_authenticated %}
+      <ul class="nav nav-tabs">
+        <li class="nav-item">
+            <div>
+                        <img  src="{% get_static_prefix %}{{ own.user.avatar.url }}" alt="img" width="50px" height="50px" />
+            </div>
+  </li>
+                                  <li class="nav-item">
+    <a class="nav-link active" href="{% url 'index' %}">Główna</a>
+  </li>
+          {% if own.id == user.id %}
+              {% else %}
+  <li class="nav-item">
+    <a class="nav-link active" href="{% url 'your-profile' user_id=own.id %}">Twój profil</a>
+  </li>
+              {% endif %}
+            <li class="nav-item">
+    <a class="nav-link active" href="{% url 'profiles' %}">Wszyscy</a>
+  </li>
+                                <li class="nav-item">
+    <a class="nav-link active" href="{% url 'top' %}">Top 10</a>
+  </li>
+                      <li class="nav-item">
+    <a class="nav-link active" href="{% url 'logout' %}">Wyloguj</a>
+  </li>
+{#        <img class="rounded-circle z-depth-6" src="{% get_static_prefix %}{{ user.user.avatar.url }}" alt="img" width="50px" height="50px" />#}
+</ul>
+    {% endif %}
 
 <div class="jumbotron jumbotron-fluid">
   <div class="container">
@@ -20,10 +45,41 @@
 
   <p class="lead">
 <img  class="rounded-circle border border-secondary" src="{% get_static_prefix %}{{ user_photo.url }}" alt="img" width="170px" height="170px" />
-
+{% if own.id == user.id %}
     <div>
+
+
     <a class="btn btn-secondary btn-sm" href="{% url 'change-photo' user_id=user.id %}">Zmień zdjęcie profilowe</a>
     </div>
+              {% endif %}
+
+              <div class="mb-4">
+
+              <form action="" method="post">
+{#              <form action="{% url 'follow' user_id=user.id %}" method="post">#}
+
+                                  {% csrf_token %}
+                {{ form }}
+                            <div>
+
+
+                                    {% if remove %}
+                        <input type="hidden" name="follower" value="delete">
+                                        <button type="submit" class="btn btn-secondary rounded-0 pt-0 pb-0 pr-4 pl-4"><strong>Przestań obserwować</strong></button>
+     {% elif mine %}
+                                    {% else %}
+         <input type="hidden" name="follower" value="add">
+
+                                        <button type="submit" class="btn btn-outline-secondary rounded-0 pt-0 pb-0 pr-4 pl-4"><strong>Obserwuj</strong></button>
+
+     {% endif %}
+ </form>
+{#                      <a href="#" class="btn btn-primary btn-sm btn-block vote">Obserwuj</a>#}
+
+              </div>
+              </div>
+
+
           </div>
           <div class="col-sm">
                 <h3 class="display-4 text-right">{{ user.username }}</h3>
@@ -32,15 +88,23 @@
               <div>
                             <p style="text-align:right" class="text-secondary">Ostatnie logowanie: {{ user.last_login }}</p>
               </div>
+                  {% if own.id == user.id %}
+                  <div class="text-right">
+                      <a class="btn btn-link" href="{% url 'change-password' user_id=user.id %}">Zmień hasło</a>
+                  </div>
+                  {% endif %}
 
           </div>
           </div>
 </div>
     </div>
 </div>
+    {% if own.id == user.id %}
 <div class="text-right">
       <a class="btn btn-outline-secondary" href="{% url 'add-post' user_id=user.id %}">Dodaj nowy post</a>
+
 </div>
+    {% endif %}
   <ul class="nav nav-tabs">
   <li class="nav-item">
     <a class="nav-link active" href="{% url 'your-profile' user_id=user.id %}">Moje przepisy</a>
@@ -48,13 +112,22 @@
      <li class="nav-item">
     <a class="nav-link active" href="{% url 'others' user_id=user.id %}">Przepisane przepisy</a>
   </li>
+      {% if own.id == user.id %}
       <li class="nav-item">
-    <a class="nav-link active" href="#">Obserwowani kucharze</a>
+    <a class="nav-link active" href="{% url 'followers' user_id=user.id %}">Obserwowani kucharze {{ number_of_following_my }}</a>
   </li>
         <li class="nav-item">
-    <a class="nav-link active" href="#">Obserwujący kucharze</a>
+    <a class="nav-link active" href="{% url 'followings' user_id=user.id %}">Obserwujący kucharze {{ number_of_followers_my }}</a>
+  </li>
+{% else %}
+                <li class="nav-item">
+    <a class="nav-link active" href="{% url 'followers' user_id=user.id %}">Obserwowani kucharze {{ number_of_following }}</a>
+  </li>
+        <li class="nav-item">
+    <a class="nav-link active" href="{% url 'followings' user_id=user.id %}">Obserwujący kucharze {{ number_of_followers }}</a>
   </li>
 
+  {% endif %}
 </ul>
 
     <nav id="navbar-example2" class="navbar navbar-light bg-light">
@@ -65,9 +138,22 @@
       <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Wyszukaj</a>
 
         <div class="dropdown-menu">
+        {% if posts %}
 {% for post in posts %}
         <a class="dropdown-item" href="#post{{ post.id }}">{{ post.description }}</a>
-{% endfor %}
+            {% endfor %}
+    {% elif rewrites %}
+            {% for rewrite in rewrites %}
+                <a class="dropdown-item" href="#rewrite{{ rewrite.post.id }}">{{ rewrite.post.description }}</a>
+            {% endfor %}
+            {% elif followers %}
+                        {% for follower in followers %}
+                <a class="dropdown-item" href="#follower{{ follower.user_id }}">{{ follower.user.user_id.username }}</a>
+            {% endfor %}
+            {% else %}
+            <a class="dropdown-item" href="#"></a>
+                {% endif %}
+
       </div>
     </li>
   </ul>

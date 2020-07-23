@@ -6,15 +6,60 @@
 
 
 {% block content %}
+
+        {% if user.is_authenticated %}
+      <ul class="nav nav-tabs">
+                    <li class="nav-item">
+            <div>
+                        <img  src="{% get_static_prefix %}{{ own.user.avatar.url }}" alt="img" width="50px" height="50px" />
+            </div>
+  </li>
+                            <li class="nav-item">
+    <a class="nav-link active" href="{% url 'index' %}">Główna</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link active" href="{% url 'your-profile' user_id=user.id %}">Twój profil</a>
+  </li>
+            <li class="nav-item">
+    <a class="nav-link active" href="{% url 'profiles' %}">Wszyscy</a>
+  </li>
+                                <li class="nav-item">
+    <a class="nav-link active" href="{% url 'top' %}">Top 10</a>
+  </li>
+                      <li class="nav-item">
+    <a class="nav-link active" href="{% url 'logout' %}">Wyloguj</a>
+  </li>
+{#        <img class="rounded-circle z-depth-6" src="{% get_static_prefix %}{{ user.user.avatar.url }}" alt="img" width="50px" height="50px" />#}
+</ul>
+    {% endif %}
 <div class="jumbotron">
-  <h1 class="display-4">{{ user.username }}</h1>
-  <p class="lead">
-  </p>
-</div>
-<div>
+<div class="card text-center">
+
+  <div class="card-header">
+
+      <img src="{% get_static_prefix %}{{ post.image.url }}" alt="img" width="300px"
+                 height="300px"/>
+            <div class="card-body">
+      	<div class="row h-100 justify-content-center align-items-center">
+		<div class="col-xs-6">
+                    <img class="rounded-circle" src="{% get_static_prefix %}{{ post.author.avatar.url }}" alt="{{ post.author.user_id.username }}" width="50px" height="50px"  />
+            		</div>
+		<div class="col-xs-6 text-left">
+<a class="card-text" href="{% url 'your-profile' user_id=post.author.user_id_id %}">{{ post.author.user_id.username }}</a><br>
+<small>Data publikacji: {{ post.date }}</small>
+        </div>
+
+      </div>
+  <div class="card-body">
+    <h5 class="card-title">{{ post.description }}</h5>
+  </div>
+
+    <div class="text-left">
     <form method="POST" action="{% url 'add-comment' post_id=post.id %}" class="form" enctype="multipart/form-data">
         {% csrf_token %}
+
         {{ form|crispy }}
+
     <button type="submit" class="btn btn-success">Dodaj</button>
     </form>
 </div>

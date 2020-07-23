@@ -4,18 +4,36 @@
 {% block title %} Panel {% endblock %}
 
 {% block content %}
-    <div class="container">
 {% if user.is_authenticated %}
       <ul class="nav nav-tabs">
+              <li class="nav-item">
+            <div>
+                        <img  src="{% get_static_prefix %}{{ own.user.avatar.url }}" alt="img" width="50px" height="50px" />
+            </div>
+  </li>
+                                      <li class="nav-item">
+    <a class="nav-link active" href="{% url 'index' %}">Główna</a>
+  </li>
   <li class="nav-item">
     <a class="nav-link active" href="{% url 'your-profile' user_id=user.id %}">Twój profil</a>
+  </li>
+{#            <li class="nav-item">#}
+{#    <a class="nav-link active" href="{% url 'profiles' %}">Wszyscy</a>#}
+{#  </li>#}
+
+                      <li class="nav-item">
+    <a class="nav-link active" href="{% url 'top' %}">Top 10</a>
+  </li>
+                      <li class="nav-item">
+    <a class="nav-link active" href="{% url 'logout' %}">Wyloguj</a>
   </li>
 {#        <img class="rounded-circle z-depth-6" src="{% get_static_prefix %}{{ user.user.avatar.url }}" alt="img" width="50px" height="50px" />#}
 </ul>
     {% endif %}
 
-<div class="jumbotron display-4">
-
+{#<div class="jumbotron display-4">#}
+    <div class="jumbotron jumbotron-fluid">
+    <div class="container">
     <hr class="my-4">
                  <form method="get">
                      <h5 class="text-center">
@@ -34,9 +52,9 @@
                   {% for profile in filter.qs %}
   <div class="col-xs-6 col-sm-3">
 
-    <div class="card">
+    <div class="card" style="width: 18rem;">
     <a href="{% url 'your-profile' user_id=profile.user_id_id %}">
-        <img src="{% get_static_prefix %}{{ profile.avatar.url }}" alt="{{ profile.avatar.url }}" class="card-img-top" height="250px"></a>
+        <img src="{% get_static_prefix %}{{ profile.avatar.url }}" alt="{{ profile.avatar.url }}" class="card-img-top" height="300px"></a>
           <div class="card-header">
           <p>{{ profile.user_id.username }}</p>
           <p>ilość przepisów: {{ profile.post.all|length }}</p>

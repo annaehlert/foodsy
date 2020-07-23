@@ -1,7 +1,7 @@
 
 import django_filters
 
-from general.models import Post, Profile
+from general.models import Post, Profile, Category
 
 
 class UserFilter(django_filters.FilterSet):
@@ -9,6 +9,7 @@ class UserFilter(django_filters.FilterSet):
     class Meta:
         model = Post
         fields = ['description']
+
 
 
 class UserFilter_2(django_filters.FilterSet):

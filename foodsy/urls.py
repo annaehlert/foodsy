@@ -16,9 +16,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
+
 from general.views import LoginView, MainPageView, AddUserView, logout_view, ChangePasswordView, ProfileView, \
     ProfilePictureEdit, DeletePostView, DetailPostView, OtherPostsView, AllProfileView, \
-    AddCommentView, EditPostView, AddPostView, TopView, FollowersView, FollowingsView
+    AddCommentView, EditPostView, AddPostView, AddFollowerView \
+    # , TopView, FollowersView, FollowingsView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -32,14 +34,14 @@ urlpatterns = [
     path('your-profile/<int:user_id>/add-post', AddPostView.as_view(), name="add-post"),
     path('your-profile/<int:user_id>/edit-post/<int:post_id>', EditPostView.as_view(), name="edit-post"),
     path('your-profile/<int:user_id>/delete-post/<int:post_id>', DeletePostView.as_view(), name="delete-post"),
-    # path('your-profile/<int:user_id>/follow', AddFollowerView.as_view(), name="follow"),
+    path('your-profile/<int:user_id>/follow', AddFollowerView.as_view(), name="follow"),
     path('your-profile/<int:user_id>/other-posts/', OtherPostsView.as_view(), name="others"),
-    path('your-profile/<int:user_id>/followers/', FollowersView.as_view(), name="followers"),
-    path('your-profile/<int:user_id>/followings/', FollowingsView.as_view(), name="followings"),
+    # path('your-profile/<int:user_id>/followers/', FollowersView.as_view(), name="followers"),
+    # path('your-profile/<int:user_id>/followings/', FollowingsView.as_view(), name="followings"),
     path('profiles/', AllProfileView.as_view(), name="profiles"),
     path('details/<int:post_id>', DetailPostView.as_view(), name="details"),
     path('details/<int:post_id>/add-comment', AddCommentView.as_view(), name="add-comment"),
-    path('top/', TopView.as_view(), name="top"),
+    # path('top/', TopView.as_view(), name="top"),
 
 
 ]

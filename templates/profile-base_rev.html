@@ -28,9 +28,9 @@
             <li class="nav-item">
     <a class="nav-link active" href="{% url 'profiles' %}">Wszyscy</a>
   </li>
-{#                                <li class="nav-item">#}
-{#    <a class="nav-link active" href="{% url 'top' %}">Top 10</a>#}
-{#  </li>#}
+                                <li class="nav-item">
+    <a class="nav-link active" href="{% url 'top' %}">Top 10</a>
+  </li>
                       <li class="nav-item">
     <a class="nav-link active" href="{% url 'logout' %}">Wyloguj</a>
   </li>
@@ -65,8 +65,8 @@
  </form>
 
 {#                                        <button id="close-section" class="btn btn-outline-secondary rounded-0 pt-0 pb-0 pr-4 pl-4"><strong>Obserwuj</strong></button>#}
-                      <button id="follow-button" data-id = "{{ user.id }}"  data-url = "{% url 'follow' user_id=user.id %}" data-follow = "{{ can_follow|yesno:'true,false' }}" class="btn btn-primary btn-sm btn-block vote">
-                          {% if can_follow %} Nie obserwuj {% else %} Obserwuj {% endif %}</button>
+
+                      <a href="#" id="close-section" class="btn btn-primary btn-sm btn-block vote">Obserwuj</a>
 
               </div>
               </div>

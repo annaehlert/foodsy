@@ -84,6 +84,7 @@ class AddCommentForm(forms.ModelForm):
 class FollowerForm(forms.Form):
     follower = forms.CharField(widget=forms.HiddenInput(attrs={'class': 'user-data'}))
 
+
 class RewriteForm(forms.ModelForm):
     class Meta:
         model = Rewrite

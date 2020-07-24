@@ -3,17 +3,15 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
-from django.db import IntegrityError
-from django.db.models import Count
+from django.core.exceptions import ObjectDoesNotExist
 from django.urls import reverse
 from django.views import View
 from django.shortcuts import render, redirect
 
 from general.filters import UserFilter, UserFilter_2
-from general.forms import LoginForm, AddUserForm, ChangePasswordForm, ChangePhotoForm, AddCommentForm, EditPostForm, \
-    AddPostForm, FollowerForm, RewriteForm
-from general.models import Profile, Post, Comment, Category, Rewrite, Follower
-
+from general.forms import LoginForm, AddUserForm, ChangePasswordForm, ChangePhotoForm, AddPostForm, AddCommentForm, \
+    FollowerForm
+from general.models import Profile, Post, Comment, Category, Follower
 from django.core.files.storage import default_storage
 
 
@@ -21,12 +19,10 @@ class MainPageView(View):
     def get(self, request):
         post_list = Post.objects.all()
         post_filter = UserFilter(request.GET, queryset=post_list)
-        own = request.user
         return render(request, "index.html",
                       {
                           # "posts": post_list,
-                          "filter": post_filter,
-                          "own": own
+                          "filter": post_filter
                       })
 
 
@@ -111,7 +107,7 @@ class AddUserView(View):
 
 class ChangePasswordView(LoginRequiredMixin, View):
     def get(self, request, user_id):
-        user = User.objects.get(id=user_id)
+        user = Profile.objects.get(user_id=user_id)
         return render(request, "change_password.html", {
             "form": ChangePasswordForm(),
             "user": user
@@ -149,163 +145,39 @@ class ProfileView(LoginRequiredMixin, View):
         user = User.objects.get(id=user_id)
         posts = Post.objects.filter(author_id=user_id)
         own = request.user
-        # if posts:
-        #     Post.objects.filter(author_id=user_id)
-        #     return render(request, "profile.html", {
-        #         "user_photo": user_photo,
-        #         "user": user,
-        #         "posts": posts,
-        #         "own": own
-        #     })
-        #
-        # return render(request, "profile.html", {
-        #     "user_photo": user_photo,
-        #     "user": user,
-        #     "own": own
-        # })
-
-
-        follower = Follower.objects.filter(user_id=user.id, follower_user_id=own.id)
-        number_of_following_my = len(Follower.objects.filter(follower_user_id=own.id))
-        number_of_followers_my = len(Follower.objects.filter(user_id=own.id))
-        number_of_following = len(Follower.objects.filter(follower_user_id=user_id))
-        number_of_followers = len(Follower.objects.filter(user_id=user_id))
-        if own.id == user_id:
+        if posts:
             return render(request, "profile.html", {
                 "user_photo": user_photo,
                 "user": user,
                 "posts": posts,
                 "own": own,
-                "number_of_following": number_of_following,
-                "number_of_followers": number_of_followers,
-                "number_of_following_my": number_of_following_my,
-                "number_of_followers_my": number_of_followers_my,
-                "mine": "mine"
-            })
-        if follower:
-            return render(request, "profile.html", {
-                "user_photo": user_photo,
-                "user": user,
-                "own": own,
-                "posts": posts,
-                "number_of_following": number_of_following,
-                "number_of_followers": number_of_followers,
-                "number_of_following_my": number_of_following_my,
-                "number_of_followers_my": number_of_followers_my,
-                "remove": "remove"
-            })
-        else:
-            return render(request, "profile.html", {
-                "user_photo": user_photo,
-                "user": user,
-                "posts": posts,
-                "own": own,
-                "number_of_following": number_of_following,
-                "number_of_followers": number_of_followers,
-                "number_of_following_my": number_of_following_my,
-                "number_of_followers_my": number_of_followers_my,
+                "can_follow": Follower.objects.filter(user_id=user_id, follower_user_id=own.id).exists()
             })
 
-
-    def post(self, request, user_id):
-        profile = Profile.objects.get(user_id=user_id)
-        user_photo = profile.avatar
-        user = User.objects.get(id=user_id)
-        posts = Post.objects.filter(author_id=user_id)
-        own = request.user
-        follower = request.POST.get('follower')
-        try:
-            if follower == "delete":
-                followed = Follower.objects.filter(user_id=user.id, follower_user_id=own.id)
-                followed.delete()
-                number_of_following_my = len(Follower.objects.filter(follower_user_id=own.id))
-                number_of_followers_my = len(Follower.objects.filter(user_id=own.id))
-                number_of_following = len(Follower.objects.filter(follower_user_id=user_id))
-                number_of_followers = len(Follower.objects.filter(user_id=user_id))
-                if posts:
-                    Post.objects.filter(author_id=user_id)
-                    return render(request, "profile.html", {
-                        "user_photo": user_photo,
-                        "user": user,
-                        "posts": posts,
-                        "own": own,
-                        "number_of_following": number_of_following,
-                        "number_of_followers": number_of_followers,
-                        "number_of_following_my": number_of_following_my,
-                        "number_of_followers_my": number_of_followers_my,
-                    })
-
-                return render(request, "profile.html", {
-                    "user_photo": user_photo,
-                    "user": user,
-                    "own": own,
-                    "number_of_following": number_of_following,
-                    "number_of_followers": number_of_followers,
-                    "number_of_following_my": number_of_following_my,
-                    "number_of_followers_my": number_of_followers_my,
-                })
-            else:
-                new_follow = Follower.objects.create(user_id=user.id, follower_user_id=own.id)
-                new_follow.save()
-                number_of_following_my = len(Follower.objects.filter(follower_user_id=own.id))
-                number_of_followers_my = len(Follower.objects.filter(user_id=own.id))
-                number_of_following = len(Follower.objects.filter(follower_user_id=user_id))
-                number_of_followers = len(Follower.objects.filter(user_id=user_id))
-                return render(request, "profile.html", {
-                    "user_photo": user_photo,
-                    "user": user,
-                    "own": own,
-                    "number_of_following": number_of_following,
-                    "number_of_followers": number_of_followers,
-                    "number_of_following_my": number_of_following_my,
-                    "number_of_followers_my": number_of_followers_my,
-                    "remove": "remove"
-                })
-
-        except IntegrityError:
-            number_of_following_my = len(Follower.objects.filter(follower_user_id=own.id))
-            number_of_followers_my = len(Follower.objects.filter(user_id=own.id))
-            number_of_following = len(Follower.objects.filter(follower_user_id=user_id))
-            number_of_followers = len(Follower.objects.filter(user_id=user_id))
-            return render(request, "profile.html", {
-                "user_photo": user_photo,
-                "user": user,
-                "own": own,
-                "number_of_following": number_of_following,
-                "number_of_followers": number_of_followers,
-                "number_of_following_my": number_of_following_my,
-                "number_of_followers_my": number_of_followers_my,
-                "remove": "remove"
-            })
-
-
-
+        return render(request, "profile.html", {
+            "user_photo": user_photo,
+            "user": user,
+            "own": own,
+            "can_follow": Follower.objects.filter(user_id=user_id, follower_user_id=own.id).exists()
+        })
 
 class ProfilePictureEdit(LoginRequiredMixin, View):
     def get(self, request, user_id):
         profile = Profile.objects.get(user_id=user_id)
         user = User.objects.get(id=user_id)
         form = ChangePhotoForm()
-        own = request.user
         return render(request, "change-profile-picture.html", {
             "form": form,
-            "user": user,
-            "profile": profile,
-            "own": own
+            "user": user
         })
-
-
     def post(self, request, user_id):
         profile = Profile.objects.get(user_id=user_id)
         user = User.objects.get(id=user_id)
         form = ChangePhotoForm(request.POST, request.FILES)
-        own = request.user
         if not form.is_valid():
             return render(request, "change-profile-picture.html", {
                 "form": ChangePhotoForm(),
-                "user": user,
-                "profile": profile,
-                "own": own
+                "user": user
             })
         image = request.FILES.get('image')
         if image is not None:
@@ -349,8 +221,8 @@ class AddPostView(LoginRequiredMixin, View):
                     destination.write(chunk)
                     new_post = Post.objects.create(author_id=user_id, image=photo, description=description, recipe=recipe)
                     for category in categories:
-                        new_category=Category.objects.get(id=category)
-                        new_post.category.add(new_category)
+                        new_category=Category.objects.create(category=category)
+                        new_category.post.add(new_post)
         else:
             messages.add_message(request, messages.WARNING, 'Dodaj zdjęcie.')
 
@@ -363,7 +235,12 @@ class EditPostView(LoginRequiredMixin, View):
         profile = Profile.objects.get(user_id=user_id)
         user = User.objects.get(id=user_id)
         post = Post.objects.get(id=post_id)
-        form = EditPostForm(instance=post)
+        form = AddPostForm({
+            "image": post.image,
+            "description": post.description,
+            "recipe": post.recipe,
+            "category": post.category
+        })
         return render(request, "edit-post.html", {
             "user": user,
             "form": form,
@@ -374,23 +251,31 @@ class EditPostView(LoginRequiredMixin, View):
         profile = Profile.objects.get(user_id=user_id)
         user = User.objects.get(id=user_id)
         post = Post.objects.get(id=post_id)
-        form = EditPostForm(request.POST, request.FILES, instance=post)
+        form = AddPostForm(request.POST, request.FILES)
         if not form.is_valid():
             messages.add_message(request, messages.WARNING, 'Post nie został zmodyfikowany, spróbuj jeszcze raz')
             return render(request, "edit-post.html", {
                 "user": user,
-                "form": form,
-                "post": post
+                "form": form
             })
-
-        updated_post = form.save(commit=False)
-        updated_post.author_id=user_id
+        image = request.FILES.get('image')
+        description = form.cleaned_data['description']
+        recipe = form.cleaned_data['recipe']
         categories = form.cleaned_data['category']
-        post.category.clear()
-        for category in categories:
-            post.category.add(category)
+        if image is not None:
+            photo = image.name
+            with default_storage.open('static/media/' + photo, 'wb+') as destination:
+                for chunk in image.chunks():
+                    destination.write(chunk)
 
-        updated_post.save()
+            post.image = photo
+            post.description = description
+            post.recipe = recipe
+            post.category.clear
+            for category in categories:
+                new_category = Category.objects.create(category=category)
+                new_category.post.add(post)
+            post.save()
         messages.add_message(request, messages.SUCCESS, 'Post został zmodyfikowany')
         return redirect(reverse('your-profile', kwargs={"user_id": user.id}))
 
@@ -409,90 +294,10 @@ class DetailPostView(View):
     def get(self, request, post_id):
         post = Post.objects.get(id=post_id)
         comments = Comment.objects.filter(post_id=post_id)
-        own = request.user
-        rewrite = Rewrite.objects.filter(user_id=own.id, post_id=post_id)
-        number = len(Rewrite.objects.filter(post_id=post_id))
-        if own.id == post.author_id:
-            return render(request, "detail-post.html", {
-                "post": post,
-                "comments": comments,
-                "mine": "mine",
-                "number": number,
-                "own": own
-            })
-        if rewrite:
-            return render(request, "detail-post.html", {
-                "post": post,
-                "comments": comments,
-                "remove": "remove",
-                "number": number,
-                "own": own
-            })
-        else:
-            return render(request, "detail-post.html", {
-                "post": post,
-                "comments": comments,
-                "number": number,
-                "own": own
-            })
-    def post(self, request, post_id):
-        rewrite = request.POST.get('rewrite')
-        post = Post.objects.get(id=post_id)
-        user = request.user
-        comments = Comment.objects.filter(post_id=post_id)
-        own = request.user
-        try:
-            if rewrite == "delete":
-                rewrited = Rewrite.objects.filter(user_id=user.id, post_id=post_id)
-                rewrited.delete()
-                number = len(Rewrite.objects.filter(post_id=post_id))
-                return render(request, "detail-post.html", {
-                    "post": post,
-                    "comments": comments,
-                    "number": number,
-                    "own": own
-                })
-            else:
-                new_rewrite = Rewrite.objects.create(user_id=user.id, post_id=post_id)
-                new_rewrite.save()
-                number = len(Rewrite.objects.filter(post_id=post_id))
-                return render(request, "detail-post.html", {
-                    "post": post,
-                    "comments": comments,
-                    "remove": "remove",
-                    "number": number,
-                    "own": own
-                })
-
-
-        except IntegrityError:
-            number = len(Rewrite.objects.filter(post_id=post_id))
-            return render(request, "detail-post.html", {
-                "post": post,
-                "comments": comments,
-                "remove": "remove",
-                "number": number,
-                "own": own
-            })
-
-        # post = Post.objects.get(id=post_id)
-        # user = request.user
-        # form = RewriteForm(request.POST, initial={"user_id": user.id, "post_id": post_id})
-        #
-        # comments = Comment.objects.filter(post_id=post_id)
-        # if not form.is_valid():
-        #     messages.add_message(request, messages.WARNING, 'Post nie został przepisany')
-        #     return render(request, "detail-post.html", {
-        #         "post": post,
-        #         "comments": comments,
-        #         "form": form
-        #     })
-        # new_rewrite = form.save(commit=False)
-        # new_rewrite.user.id = post.author.user_id
-        # new_rewrite.post.id = post_id
-        # new_rewrite.save()
-        # messages.add_message(request, messages.SUCCESS, 'Post został przepisany')
-        # return redirect(reverse('details', kwargs={"post_id": post_id}))
+        return render(request, "detail-post.html", {
+            "post": post,
+            "comments": comments
+        })
 
 
 class OtherPostsView(LoginRequiredMixin, View):
@@ -500,169 +305,26 @@ class OtherPostsView(LoginRequiredMixin, View):
         profile = Profile.objects.get(user_id=user_id)
         user_photo = profile.avatar
         user = User.objects.get(id=user_id)
-        own = request.user
-        rewrites = Rewrite.objects.filter(user_id=user_id).exclude(post__author=user_id)
-        follower = Follower.objects.filter(user_id=user.id, follower_user_id=own.id)
-        number_of_following_my = len(Follower.objects.filter(follower_user_id=own.id))
-        number_of_followers_my = len(Follower.objects.filter(user_id=own.id))
-        number_of_following = len(Follower.objects.filter(follower_user_id=user_id))
-        number_of_followers = len(Follower.objects.filter(user_id=user_id))
-
-        if own.id == user_id:
-            if rewrites:
-                return render(request, "others-posts.html", {
-                    "user_photo": user_photo,
-                    "user": user,
-                    "rewrites": rewrites,
-                    "own": own,
-                    "number_of_following": number_of_following,
-                    "number_of_followers": number_of_followers,
-                    "number_of_following_my": number_of_following_my,
-                    "number_of_followers_my": number_of_followers_my,
-                    "mine": "mine"
-                })
-            return render(request, "profile.html", {
-                "user_photo": user_photo,
-                "user": user,
-                "own": own,
-                "number_of_following": number_of_following,
-                "number_of_followers": number_of_followers,
-                "number_of_following_my": number_of_following_my,
-                "number_of_followers_my": number_of_followers_my,
-                "mine": "mine"
-            })
-        else:
-            if rewrites:
-                if follower:
-                    return render(request, "others-posts.html", {
-                        "user_photo": user_photo,
-                        "user": user,
-                        "own": own,
-                        "rewrites": rewrites,
-                        "number_of_following": number_of_following,
-                        "number_of_followers": number_of_followers,
-                        "number_of_following_my": number_of_following_my,
-                        "number_of_followers_my": number_of_followers_my,
-                        "remove": "remove"
-                    })
-                else:
-                    return render(request, "others-posts.html", {
-                        "user_photo": user_photo,
-                        "user": user,
-                        "rewrites": rewrites,
-                        "own": own,
-                        "number_of_following": number_of_following,
-                        "number_of_followers": number_of_followers,
-                        "number_of_following_my": number_of_following_my,
-                        "number_of_followers_my": number_of_followers_my,
-                    })
-            else:
-                if follower:
-                    return render(request, "profile.html", {
-                        "user_photo": user_photo,
-                        "user": user,
-                        "own": own,
-                        "number_of_following": number_of_following,
-                        "number_of_followers": number_of_followers,
-                        "number_of_following_my": number_of_following_my,
-                        "number_of_followers_my": number_of_followers_my,
-                        "remove": "remove"
-                    })
-                else:
-                    return render(request, "profile.html", {
-                        "user_photo": user_photo,
-                        "user": user,
-                        "own": own,
-                        "number_of_following": number_of_following,
-                        "number_of_followers": number_of_followers,
-                        "number_of_following_my": number_of_following_my,
-                        "number_of_followers_my": number_of_followers_my,
-                    })
-    def post(self, request, user_id):
-        profile = Profile.objects.get(user_id=user_id)
-        user_photo = profile.avatar
-        user = User.objects.get(id=user_id)
-        posts = Post.objects.filter(author_id=user_id)
-        own = request.user
-        follower = request.POST.get('follower')
-        rewrites = Rewrite.objects.filter(user_id=user_id).exclude(post__author=user_id)
-        try:
-            if follower == "delete":
-                followed = Follower.objects.filter(user_id=user.id, follower_user_id=own.id)
-                followed.delete()
-                number_of_following_my = len(Follower.objects.filter(follower_user_id=own.id))
-                number_of_followers_my = len(Follower.objects.filter(user_id=own.id))
-                number_of_following = len(Follower.objects.filter(follower_user_id=user_id))
-                number_of_followers = len(Follower.objects.filter(user_id=user_id))
-                if posts:
-                    Post.objects.filter(author_id=user_id)
-                    return render(request, "others-posts.html", {
-                        "user_photo": user_photo,
-                        "user": user,
-                        "posts": posts,
-                        "own": own,
-                        "number_of_following": number_of_following,
-                        "number_of_followers": number_of_followers,
-                        "number_of_following_my": number_of_following_my,
-                        "number_of_followers_my": number_of_followers_my,
-                        "rewrites": rewrites,
-                    })
-
-                return render(request, "others-posts.html", {
-                    "user_photo": user_photo,
-                    "user": user,
-                    "own": own,
-                    "number_of_following": number_of_following,
-                    "number_of_followers": number_of_followers,
-                    "number_of_following_my": number_of_following_my,
-                    "number_of_followers_my": number_of_followers_my,
-                    "rewrites": rewrites,
-                })
-            else:
-                new_follow = Follower.objects.create(user_id=user.id, follower_user_id=own.id)
-                new_follow.save()
-                number_of_following_my = len(Follower.objects.filter(follower_user_id=own.id))
-                number_of_followers_my = len(Follower.objects.filter(user_id=own.id))
-                number_of_following = len(Follower.objects.filter(follower_user_id=user_id))
-                number_of_followers = len(Follower.objects.filter(user_id=user_id))
-                return render(request, "others-posts.html", {
-                    "user_photo": user_photo,
-                    "user": user,
-                    "own": own,
-                    "number_of_following": number_of_following,
-                    "number_of_followers": number_of_followers,
-                    "number_of_following_my": number_of_following_my,
-                    "number_of_followers_my": number_of_followers_my,
-                    "remove": "remove",
-                    "rewrites": rewrites,
-                })
-
-        except IntegrityError:
-            number_of_following_my = len(Follower.objects.filter(follower_user_id=own.id))
-            number_of_followers_my = len(Follower.objects.filter(user_id=own.id))
-            number_of_following = len(Follower.objects.filter(follower_user_id=user_id))
-            number_of_followers = len(Follower.objects.filter(user_id=user_id))
+        posts = Post.objects.exclude(author_id=user_id)
+        if posts:
             return render(request, "others-posts.html", {
                 "user_photo": user_photo,
                 "user": user,
-                "own": own,
-                "number_of_following": number_of_following,
-                "number_of_followers": number_of_followers,
-                "number_of_following_my": number_of_following_my,
-                "number_of_followers_my": number_of_followers_my,
-                "remove": "remove",
-                "rewrites": rewrites,
+                "posts": posts,
             })
+        return render(request, "profile.html", {
+            "user_photo": user_photo,
+            "user": user,
+        })
+
 
 class AllProfileView(LoginRequiredMixin, View):
     def get(self, request):
         profile_list = Profile.objects.all()
         profile_filter = UserFilter_2(request.GET, queryset=profile_list)
-        own = request.user
         return render(request, "profiles.html",
                       {
-                          "filter": profile_filter,
-                          "own": own
+                          "filter": profile_filter
                       })
 
 
@@ -696,388 +358,52 @@ class AddCommentView(LoginRequiredMixin, View):
         return redirect(reverse('details', kwargs={"post_id": post_id}))
 
 
+class AddFollowerView(View):
 
-# class AddFollowerView(View):
-#     def post(self, request, user_id):
-#         follower = request.POST.get('follower')
-#         own = request.user
-#         try:
-#             if follower == "delete":
-#                 rewrited = Rewrite.objects.filter(user_id=user.id, post_id=post_id)
-#                 rewrited.delete()
-#                 number = len(Rewrite.objects.filter(post_id=post_id))
-#                 return render(request, "detail-post.html", {
-#                     "post": post,
-#                     "comments": comments,
-#                     "number": number
-#                 })
-#             else:
-#                 new_rewrite = Rewrite.objects.create(user_id=user.id, post_id=post_id)
-#                 new_rewrite.save()
-#                 number = len(Rewrite.objects.filter(post_id=post_id))
-#                 return render(request, "detail-post.html", {
-#                     "post": post,
-#                     "comments": comments,
-#                     "remove": "remove",
-#                     "number": number
-#                 })
-
-
-        # user = User.objects.get(id=user_id)
-        # form = FollowerForm(request.POST)
-        # if not form.is_valid():
-        #     messages.add_message(
-        #         request,
-        #         messages.WARNING,
-        #         'Coś poszło nie tak.'
-        #     )
-        #     return redirect(reverse('your-profile', kwargs={"user_id": user.id}))
-        # profile = Profile.objects.get(user_id=form.cleaned_data['follower'])
-        # if not profile:
-        #     messages.add_message(
-        #         request,
-        #         messages.WARNING,
-        #         'Nie ma takiego użytkownika.'
-        #     )
-        #     return redirect(reverse('your-profile', kwargs={"user_id": user.id}))
-        # follower_user = request.user
-        # Follower.objects.create(user_id=user_id, follower_user=follower_user.id)
-        # messages.add_message(
-        #     request,
-        #     messages.SUCCESS,
-        #     'Dziękujemy za udział w konkursie.'
-        # )
-        # return redirect(reverse('your-profile', kwargs={"user_id": user.id}))
-
-
-class TopView(View):
-    def get(self, request):
-        repeated = Rewrite.objects.values('post').annotate(Count('id')).order_by().filter(id__count__gt=0)[:10]
-        posts = Post.objects.all()
-        own = request.user
-        return render(request, "top.html",
-                      {
-                          "repeated": repeated,
-                          "posts": posts,
-                          "own": own
-                      })
-
-
-class FollowersView(LoginRequiredMixin, View):
-    def get(self, request, user_id):
-        profile = Profile.objects.get(user_id=user_id)
-        user_photo = profile.avatar
-        user = User.objects.get(id=user_id)
-        own = request.user
-        followers = Follower.objects.filter(follower_user_id=user_id)
-        follower = Follower.objects.filter(user_id=user.id, follower_user_id=own.id)
-        number_of_following_my = len(Follower.objects.filter(follower_user_id=own.id))
-        number_of_followers_my = len(Follower.objects.filter(user_id=own.id))
-        number_of_following = len(Follower.objects.filter(follower_user_id=user_id))
-        number_of_followers = len(Follower.objects.filter(user_id=user_id))
-
-        if own.id == user_id:
-            if followers:
-                return render(request, "followers.html", {
-                    "user_photo": user_photo,
-                    "user": user,
-                    "followers": followers,
-                    "own": own,
-                    "number_of_following": number_of_following,
-                    "number_of_followers": number_of_followers,
-                    "number_of_following_my": number_of_following_my,
-                    "number_of_followers_my": number_of_followers_my,
-                    "mine": "mine"
-                })
-            return render(request, "followers.html", {
-                "user_photo": user_photo,
-                "user": user,
-                "own": own,
-                "number_of_following": number_of_following,
-                "number_of_followers": number_of_followers,
-                "number_of_following_my": number_of_following_my,
-                "number_of_followers_my": number_of_followers_my,
-                "mine": "mine"
-            })
-        else:
-            if followers:
-                if follower:
-                    return render(request, "followers.html", {
-                        "user_photo": user_photo,
-                        "user": user,
-                        "own": own,
-                        "followers": followers,
-                        "number_of_following": number_of_following,
-                        "number_of_followers": number_of_followers,
-                        "number_of_following_my": number_of_following_my,
-                        "number_of_followers_my": number_of_followers_my,
-                        "remove": "remove"
-                    })
-                else:
-                    return render(request, "followers.html", {
-                        "user_photo": user_photo,
-                        "user": user,
-                        "followers": followers,
-                        "own": own,
-                        "number_of_following": number_of_following,
-                        "number_of_followers": number_of_followers,
-                        "number_of_following_my": number_of_following_my,
-                        "number_of_followers_my": number_of_followers_my,
-                    })
-            else:
-                if follower:
-                    return render(request, "followers.html", {
-                        "user_photo": user_photo,
-                        "user": user,
-                        "own": own,
-                        "number_of_following": number_of_following,
-                        "number_of_followers": number_of_followers,
-                        "number_of_following_my": number_of_following_my,
-                        "number_of_followers_my": number_of_followers_my,
-                        "remove": "remove"
-                    })
-                else:
-                    return render(request, "followers.html", {
-                        "user_photo": user_photo,
-                        "user": user,
-                        "own": own,
-                        "number_of_following": number_of_following,
-                        "number_of_followers": number_of_followers,
-                        "number_of_following_my": number_of_following_my,
-                        "number_of_followers_my": number_of_followers_my,
-                    })
     def post(self, request, user_id):
-        profile = Profile.objects.get(user_id=user_id)
-        user_photo = profile.avatar
-        user = User.objects.get(id=user_id)
-        posts = Post.objects.filter(author_id=user_id)
-        own = request.user
-        follower = request.POST.get('follower')
-        followers = Follower.objects.filter(follower_user_id=user_id)
+        print("przyszło")
         try:
-            if follower == "delete":
-                followed = Follower.objects.filter(user_id=user.id, follower_user_id=own.id)
-                followed.delete()
-                number_of_following_my = len(Follower.objects.filter(follower_user_id=own.id))
-                number_of_followers_my = len(Follower.objects.filter(user_id=own.id))
-                number_of_following = len(Follower.objects.filter(follower_user_id=user_id))
-                number_of_followers = len(Follower.objects.filter(user_id=user_id))
-                if posts:
-                    Post.objects.filter(author_id=user_id)
-                    return render(request, "followers.html", {
-                        "user_photo": user_photo,
-                        "user": user,
-                        "posts": posts,
-                        "own": own,
-                        "number_of_following": number_of_following,
-                        "number_of_followers": number_of_followers,
-                        "number_of_following_my": number_of_following_my,
-                        "number_of_followers_my": number_of_followers_my,
-                        "followers": followers,
-                    })
-
-                return render(request, "followers.html", {
-                    "user_photo": user_photo,
-                    "user": user,
-                    "own": own,
-                    "number_of_following": number_of_following,
-                    "number_of_followers": number_of_followers,
-                    "number_of_following_my": number_of_following_my,
-                    "number_of_followers_my": number_of_followers_my,
-                    "followers": followers,
-                })
-            else:
-                new_follow = Follower.objects.create(user_id=user.id, follower_user_id=own.id)
-                new_follow.save()
-                number_of_following_my = len(Follower.objects.filter(follower_user_id=own.id))
-                number_of_followers_my = len(Follower.objects.filter(user_id=own.id))
-                number_of_following = len(Follower.objects.filter(follower_user_id=user_id))
-                number_of_followers = len(Follower.objects.filter(user_id=user_id))
-                return render(request, "followers.html", {
-                    "user_photo": user_photo,
-                    "user": user,
-                    "own": own,
-                    "number_of_following": number_of_following,
-                    "number_of_followers": number_of_followers,
-                    "number_of_following_my": number_of_following_my,
-                    "number_of_followers_my": number_of_followers_my,
-                    "remove": "remove",
-                    "followers": followers,
-                })
-
-        except IntegrityError:
-            number_of_following_my = len(Follower.objects.filter(follower_user_id=own.id))
-            number_of_followers_my = len(Follower.objects.filter(user_id=own.id))
-            number_of_following = len(Follower.objects.filter(follower_user_id=user_id))
-            number_of_followers = len(Follower.objects.filter(user_id=user_id))
-            return render(request, "followers.html", {
-                "user_photo": user_photo,
-                "user": user,
-                "own": own,
-                "number_of_following": number_of_following,
-                "number_of_followers": number_of_followers,
-                "number_of_following_my": number_of_following_my,
-                "number_of_followers_my": number_of_followers_my,
-                "remove": "remove",
-                "followers": followers,
-            })
-
-
-class FollowingsView(LoginRequiredMixin, View):
-    def get(self, request, user_id):
-        profile = Profile.objects.get(user_id=user_id)
-        user_photo = profile.avatar
-        user = User.objects.get(id=user_id)
-        own = request.user
-        followings = Follower.objects.filter(user_id=user_id)
-        follower = Follower.objects.filter(user_id=user.id, follower_user_id=own.id)
-        number_of_following_my = len(Follower.objects.filter(follower_user_id=own.id))
-        number_of_followers_my = len(Follower.objects.filter(user_id=own.id))
-        number_of_following = len(Follower.objects.filter(follower_user_id=user_id))
-        number_of_followers = len(Follower.objects.filter(user_id=user_id))
-
-        if own.id == user_id:
-            if followings:
-                return render(request, "following.html", {
-                    "user_photo": user_photo,
-                    "user": user,
-                    "followings": followings,
-                    "own": own,
-                    "number_of_following": number_of_following,
-                    "number_of_followers": number_of_followers,
-                    "number_of_following_my": number_of_following_my,
-                    "number_of_followers_my": number_of_followers_my,
-                    "mine": "mine"
-                })
-            return render(request, "following.html", {
-                "user_photo": user_photo,
-                "user": user,
-                "own": own,
-                "number_of_following": number_of_following,
-                "number_of_followers": number_of_followers,
-                "number_of_following_my": number_of_following_my,
-                "number_of_followers_my": number_of_followers_my,
-                "mine": "mine"
-            })
-        else:
-            if followings:
-                if follower:
-                    return render(request, "following.html", {
-                        "user_photo": user_photo,
-                        "user": user,
-                        "own": own,
-                        "followings": followings,
-                        "number_of_following": number_of_following,
-                        "number_of_followers": number_of_followers,
-                        "number_of_following_my": number_of_following_my,
-                        "number_of_followers_my": number_of_followers_my,
-                        "remove": "remove"
-                    })
-                else:
-                    return render(request, "following.html", {
-                        "user_photo": user_photo,
-                        "user": user,
-                        "followings": followings,
-                        "own": own,
-                        "number_of_following": number_of_following,
-                        "number_of_followers": number_of_followers,
-                        "number_of_following_my": number_of_following_my,
-                        "number_of_followers_my": number_of_followers_my,
-                    })
-            else:
-                if follower:
-                    return render(request, "following.html", {
-                        "user_photo": user_photo,
-                        "user": user,
-                        "own": own,
-                        "number_of_following": number_of_following,
-                        "number_of_followers": number_of_followers,
-                        "number_of_following_my": number_of_following_my,
-                        "number_of_followers_my": number_of_followers_my,
-                        "remove": "remove"
-                    })
-                else:
-                    return render(request, "following.html", {
-                        "user_photo": user_photo,
-                        "user": user,
-                        "own": own,
-                        "number_of_following": number_of_following,
-                        "number_of_followers": number_of_followers,
-                        "number_of_following_my": number_of_following_my,
-                        "number_of_followers_my": number_of_followers_my,
-                    })
-    def post(self, request, user_id):
-        profile = Profile.objects.get(user_id=user_id)
-        user_photo = profile.avatar
-        user = User.objects.get(id=user_id)
-        posts = Post.objects.filter(author_id=user_id)
-        own = request.user
-        follower = request.POST.get('follower')
-        followings = Follower.objects.filter(user_id=user_id)
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            messages.add_message(
+                request,
+                messages.WARNING,
+                'Nie ma takiego użytkownika.'
+            )
+            return redirect(reverse('your-profile', kwargs={"user_id": user.id}))
+        profile = Profile.objects.get(user_id_id=user_id)
+        follower_user = request.user
         try:
-            if follower == "delete":
-                followed = Follower.objects.filter(user_id=user.id, follower_user_id=own.id)
-                followed.delete()
-                number_of_following_my = len(Follower.objects.filter(follower_user_id=own.id))
-                number_of_followers_my = len(Follower.objects.filter(user_id=own.id))
-                number_of_following = len(Follower.objects.filter(follower_user_id=user_id))
-                number_of_followers = len(Follower.objects.filter(user_id=user_id))
-                if posts:
-                    Post.objects.filter(author_id=user_id)
-                    return render(request, "following.html", {
-                        "user_photo": user_photo,
-                        "user": user,
-                        "posts": posts,
-                        "own": own,
-                        "number_of_following": number_of_following,
-                        "number_of_followers": number_of_followers,
-                        "number_of_following_my": number_of_following_my,
-                        "number_of_followers_my": number_of_followers_my,
-                        "followings": followings,
-                    })
+            Follower.objects.get(user_id=user_id, follower_user_id=follower_user.id).delete()
 
-                return render(request, "following.html", {
-                    "user_photo": user_photo,
-                    "user": user,
-                    "own": own,
-                    "number_of_following": number_of_following,
-                    "number_of_followers": number_of_followers,
-                    "number_of_following_my": number_of_following_my,
-                    "number_of_followers_my": number_of_followers_my,
-                    "followings": followings,
-                })
-            else:
-                new_follow = Follower.objects.create(user_id=user.id, follower_user_id=own.id)
-                new_follow.save()
-                number_of_following_my = len(Follower.objects.filter(follower_user_id=own.id))
-                number_of_followers_my = len(Follower.objects.filter(user_id=own.id))
-                number_of_following = len(Follower.objects.filter(follower_user_id=user_id))
-                number_of_followers = len(Follower.objects.filter(user_id=user_id))
-                return render(request, "following.html", {
-                    "user_photo": user_photo,
-                    "user": user,
-                    "own": own,
-                    "number_of_following": number_of_following,
-                    "number_of_followers": number_of_followers,
-                    "number_of_following_my": number_of_following_my,
-                    "number_of_followers_my": number_of_followers_my,
-                    "remove": "remove",
-                    "followings": followings,
-                })
+        except (Follower.DoesNotExist, Follower.MultipleObjectsReturned):
+            Follower.objects.create(user_id=user_id, follower_user_id=follower_user.id)
 
-        except IntegrityError:
-            number_of_following_my = len(Follower.objects.filter(follower_user_id=own.id))
-            number_of_followers_my = len(Follower.objects.filter(user_id=own.id))
-            number_of_following = len(Follower.objects.filter(follower_user_id=user_id))
-            number_of_followers = len(Follower.objects.filter(user_id=user_id))
-            return render(request, "following.html", {
-                "user_photo": user_photo,
-                "user": user,
-                "own": own,
-                "number_of_following": number_of_following,
-                "number_of_followers": number_of_followers,
-                "number_of_following_my": number_of_following_my,
-                "number_of_followers_my": number_of_followers_my,
-                "remove": "remove",
-                "followings": followings,
-            })
+        return redirect(reverse('your-profile', kwargs={"user_id": user.id}))
+
+
+
+
+
+    #         follower = request.POST.get('follower')
+    #         own = request.user
+    #         try:
+    #             if follower == "delete":
+    #                 rewrited = Rewrite.objects.filter(user_id=user.id, post_id=post_id)
+    #                 rewrited.delete()
+    #                 number = len(Rewrite.objects.filter(post_id=post_id))
+    #                 return render(request, "detail-post.html", {
+    #                     "post": post,
+    #                     "comments": comments,
+    #                     "number": number
+    #                 })
+    #             else:
+    #                 new_rewrite = Rewrite.objects.create(user_id=user.id, post_id=post_id)
+    #                 new_rewrite.save()
+    #                 number = len(Rewrite.objects.filter(post_id=post_id))
+    #                 return render(request, "detail-post.html", {
+    #                     "post": post,
+    #                     "comments": comments,
+    #                     "remove": "remove",
+    #                     "number": number
+    #                 })

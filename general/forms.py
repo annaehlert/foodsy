@@ -2,7 +2,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.forms import ModelMultipleChoiceField
 
-from general.models import Profile, Post, Comment, Category, Rewrite
+from general.models import Post, Comment, Category
 
 
 class LoginForm(forms.Form):
@@ -37,12 +37,6 @@ class ChangePasswordForm(forms.Form):
 class ChangePhotoForm(forms.Form):
     image = forms.ImageField(label="Zdjęcie profilowe", required=False)
 
-
-#
-# class AddPostForm(forms.ModelForm):
-#     class Meta:
-#         model = Post
-#         fields = ['image', 'description', 'recipe']
 
 class AddPostForm(forms.Form):
     image = forms.ImageField(label="Zdjęcie")
@@ -80,13 +74,3 @@ class AddCommentForm(forms.ModelForm):
         model = Comment
         fields = ['content']
 
-
-class FollowerForm(forms.Form):
-    follower = forms.CharField(widget=forms.HiddenInput(attrs={'class': 'user-data'}))
-
-class RewriteForm(forms.ModelForm):
-    class Meta:
-        model = Rewrite
-        fields = '__all__'
-        widgets = {'user': forms.HiddenInput(),
-                   'post': forms.HiddenInput()}

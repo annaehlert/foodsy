@@ -63,16 +63,15 @@
 {% if own.id == user.id %}
               {% else %}
 
-              <form id="profile-vote-form" action="{% url 'follow' user_id=user.id %}" method="post">
-
-                                  {% csrf_token %}
-                {{ form }}
+{#              <form id="profile-vote-form" action="{% url 'follow' user_id=user.id %}" method="post">#}
+{##}
+{#                                  {% csrf_token %}#}
+{##}
                             <div>
-
- </form>
-
+{##}
+{# </form>#}
                       <button id="follow-button" data-id = "{{ user.id }}"  data-url = "{% url 'follow' user_id=user.id %}" data-follow = "{{ can_follow|yesno:'true,false' }}" style="margin: auto; width: 32%; padding: 7px;" class="btn btn-outline-secondary vote">
-                          <strong>{% if can_follow %} Nie obserwuj {% else %} Obserwuj {% endif %}</strong></button>
+                          {% if can_follow %} Obserwuj {% else %} Nie obserwuj {% endif %}</button>
      </div>
 
 {% endif %}
@@ -117,17 +116,17 @@
   </li>
       {% if own.id == user.id %}
       <li class="nav-item">
-    <a class="nav-link active" href="{% url 'followers' user_id=user.id %}">Obserwowani kucharze {{ number_of_following_my }}</a>
+    <a class="nav-link active" href="{% url 'followers' user_id=user.id %}">Obserwowani kucharze <span id="number_of_followings" class="text-center">{{ number_of_following_my }}</span> </a>
   </li>
         <li class="nav-item">
-    <a class="nav-link active" href="{% url 'followings' user_id=user.id %}">Obserwujący kucharze {{ number_of_followers_my }}</a>
+            <a class="nav-link active" href="{% url 'followings' user_id=user.id %}">Obserwujący kucharze <span id="number_of_followers" class="text-center">{{ number_of_followers_my }}</span></a>
   </li>
 {% else %}
                 <li class="nav-item">
-    <a class="nav-link active" href="{% url 'followers' user_id=user.id %}">Obserwowani kucharze {{ number_of_following }}</a>
+    <a class="nav-link active" href="{% url 'followers' user_id=user.id %}">Obserwowani kucharze <span id="number_of_followings" class="text-center">{{ number_of_following }}</span></a>
   </li>
         <li class="nav-item">
-    <a class="nav-link active" href="{% url 'followings' user_id=user.id %}">Obserwujący kucharze {{ number_of_followers }}</a>
+    <a class="nav-link active" href="{% url 'followings' user_id=user.id %}">Obserwujący kucharze <span id="number_of_followers" class="text-center">{{ number_of_followers }}</span></a>
   </li>
 
   {% endif %}
@@ -152,11 +151,11 @@
             {% endfor %}
             {% elif followers %}
                         {% for follower in followers %}
-                <a class="dropdown-item" href="#follower{{ follower.id }}">{{ follower.user.user_id.username }}</a>
+                <a class="dropdown-item" href="#follower{{ follower.id }}">{{ follower.user.user.username }}</a>
             {% endfor %}
                         {% elif followings %}
                         {% for following in followings %}
-                <a class="dropdown-item" href="#follower{{ following.follower_user.user_id }}">{{ following.follower_user.user_id.username }}</a>
+                <a class="dropdown-item" href="#follower{{ following.follower_user.user }}">{{ following.follower_user.user.username }}</a>
             {% endfor %}
             {% else %}
             <a class="dropdown-item" href="#"></a>

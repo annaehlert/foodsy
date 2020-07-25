@@ -3,8 +3,9 @@ from django.db import models
 
 
 class Profile(models.Model):
-    user_id = models.OneToOneField('auth.User', on_delete=models.CASCADE, primary_key=True, related_name="user")
+    user = models.OneToOneField('auth.User', on_delete=models.CASCADE, primary_key=True, related_name="user")
     avatar = models.ImageField(upload_to='media', default='default.jpg')
+
 
 class Category(models.Model):
     category = models.CharField(verbose_name="kategoria", max_length=20, null=True)
@@ -19,7 +20,7 @@ class Post(models.Model):
     category = models.ManyToManyField(Category, related_name="categories", verbose_name="kategoria")
 
     def __str__(self):
-        return self.author.user_id.username
+        return self.author.user.username
 
 
 class Follower(models.Model):

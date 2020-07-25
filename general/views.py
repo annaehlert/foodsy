@@ -11,7 +11,7 @@ from django.shortcuts import render, redirect
 
 from general.filters import UserFilter, UserFilter_2
 from general.forms import LoginForm, AddUserForm, ChangePasswordForm, ChangePhotoForm, AddCommentForm, EditPostForm, \
-    AddPostForm
+    AddPostForm, DeletePostForm
 from general.models import Profile, Post, Comment, Category, Rewrite, Follower
 
 from django.core.files.storage import default_storage
@@ -95,9 +95,9 @@ class AddUserView(View):
             with default_storage.open('static/media/' + photo, 'wb+') as destination:
                 for chunk in image.chunks():
                     destination.write(chunk)
-            Profile.objects.create(user_id_id=new_user.pk, avatar=photo)
+            Profile.objects.create(user_id=new_user.pk, avatar=photo)
         else:
-            Profile.objects.create(user_id_id=new_user.pk)
+            Profile.objects.create(user_id=new_user.pk)
         if password != password_2:
             message = "Please repeat password correctly"
             return render(request, "add_user.html", {
@@ -143,7 +143,7 @@ class ChangePasswordView(LoginRequiredMixin, View):
 class ProfileView(LoginRequiredMixin, View):
 
     def get(self, request, user_id):
-        profile = Profile.objects.get(user_id=user_id)
+        profile = Profile.objects.get(user=user_id)
         user_photo = profile.avatar
         user = User.objects.get(id=user_id)
         posts = Post.objects.filter(author_id=user_id)
@@ -181,7 +181,7 @@ class ProfileView(LoginRequiredMixin, View):
                     "user": user,
                     "posts": posts,
                     "own": own,
-                    "can_follow": Follower.objects.filter(user_id=user_id, follower_user_id=own.id).exists(),
+                    "can_follow": not Follower.objects.filter(user_id=user_id, follower_user_id=own.id).exists(),
                     "number_of_following": number_of_following,
                     "number_of_followers": number_of_followers,
                     "number_of_following_my": number_of_following_my,
@@ -192,7 +192,7 @@ class ProfileView(LoginRequiredMixin, View):
                 "user_photo": user_photo,
                 "user": user,
                 "own": own,
-                "can_follow": Follower.objects.filter(user_id=user_id, follower_user_id=own.id).exists(),
+                "can_follow": not Follower.objects.filter(user_id=user_id, follower_user_id=own.id).exists(),
                 "number_of_following": number_of_following,
                 "number_of_followers": number_of_followers,
                 "number_of_following_my": number_of_following_my,
@@ -202,7 +202,7 @@ class ProfileView(LoginRequiredMixin, View):
 
 class ProfilePictureEdit(LoginRequiredMixin, View):
     def get(self, request, user_id):
-        profile = Profile.objects.get(user_id=user_id)
+        profile = Profile.objects.get(user=user_id)
         user = User.objects.get(id=user_id)
         form = ChangePhotoForm()
         own = request.user
@@ -214,7 +214,7 @@ class ProfilePictureEdit(LoginRequiredMixin, View):
         })
 
     def post(self, request, user_id):
-        profile = Profile.objects.get(user_id=user_id)
+        profile = Profile.objects.get(user=user_id)
         user = User.objects.get(id=user_id)
         form = ChangePhotoForm(request.POST, request.FILES)
         own = request.user
@@ -246,7 +246,6 @@ class AddPostView(LoginRequiredMixin, View):
         })
 
     def post(self, request, user_id):
-        profile = Profile.objects.get(user_id=user_id)
         user = User.objects.get(id=user_id)
         form = AddPostForm(request.POST, request.FILES)
         if not form.is_valid():
@@ -296,9 +295,15 @@ class EditPostView(LoginRequiredMixin, View):
                 "form": form,
                 "post": post
             })
-
+        image = request.FILES.get('image')
         updated_post = form.save(commit=False)
+        if image:
+            photo = image.name
+            with default_storage.open('static/media/' + photo, 'wb+') as destination:
+                for chunk in image.chunks():
+                    destination.write(chunk)
         updated_post.author_id=user_id
+        updated_post.image = photo
         categories = form.cleaned_data['category']
         post.category.clear()
         for category in categories:
@@ -311,6 +316,18 @@ class EditPostView(LoginRequiredMixin, View):
 
 class DeletePostView(LoginRequiredMixin, View):
     def get(self, request, user_id, post_id):
+        user = User.objects.get(id=user_id)
+        post = Post.objects.get(id=post_id)
+        form = DeletePostForm(instance=post)
+        return render(request, "delete-post.html", {
+            "user": user,
+            "form": form,
+            "post": post
+        })
+
+
+
+    def post(self, request, user_id, post_id):
         user = User.objects.get(id=user_id)
         post = Post.objects.get(id=post_id)
         if post:
@@ -379,7 +396,6 @@ class DetailPostView(View):
                     "own": own
                 })
 
-
         except IntegrityError:
             number = len(Rewrite.objects.filter(post_id=post_id))
             return render(request, "detail-post.html", {
@@ -393,7 +409,7 @@ class DetailPostView(View):
 
 class OtherPostsView(LoginRequiredMixin, View):
     def get(self, request, user_id):
-        profile = Profile.objects.get(user_id=user_id)
+        profile = Profile.objects.get(user=user_id)
         user_photo = profile.avatar
         user = User.objects.get(id=user_id)
         own = request.user
@@ -426,13 +442,14 @@ class OtherPostsView(LoginRequiredMixin, View):
                 "number_of_followers_my": number_of_followers_my
             })
         else:
+            print("wchodzimy")
             if rewrites:
                 return render(request, "others-posts.html", {
                     "user_photo": user_photo,
                     "user": user,
                     "rewrites": rewrites,
                     "own": own,
-                    "can_follow": Follower.objects.filter(user_id=user_id, follower_user_id=own.id).exists(),
+                    "can_follow": not Follower.objects.filter(user_id=user_id, follower_user_id=own.id).exists(),
                     "number_of_following": number_of_following,
                     "number_of_followers": number_of_followers,
                     "number_of_following_my": number_of_following_my,
@@ -443,7 +460,7 @@ class OtherPostsView(LoginRequiredMixin, View):
                 "user_photo": user_photo,
                 "user": user,
                 "own": own,
-                "can_follow": Follower.objects.filter(user_id=user_id, follower_user_id=own.id).exists(),
+                "can_follow": not Follower.objects.filter(user_id=user_id, follower_user_id=own.id).exists(),
                 "number_of_following": number_of_following,
                 "number_of_followers": number_of_followers,
                 "number_of_following_my": number_of_following_my,
@@ -477,8 +494,8 @@ class AddCommentView(LoginRequiredMixin, View):
     def post(self, request, post_id):
         form = AddCommentForm(request.POST)
         post = Post.objects.get(id=post_id)
-        user = post.author.user_id
-        if not form.is_valid():  # muszę dodać message, że coś poszło nie tak!!
+        user = post.author.user
+        if not form.is_valid():
             messages.add_message(request, messages.WARNING, 'Komentarz nie został dodany, spróbuj jeszcze raz')
             return render(request, "add-comment.html", {
                 "user": user,
@@ -496,7 +513,6 @@ class AddCommentView(LoginRequiredMixin, View):
 class AddFollowerView(View):
 
     def post(self, request, user_id):
-        print("przyszło")
         try:
             user = User.objects.get(id=user_id)
         except User.DoesNotExist:
@@ -510,8 +526,11 @@ class AddFollowerView(View):
         try:
             Follower.objects.get(user_id=user_id, follower_user_id=follower_user.id).delete()
 
-        except (Follower.DoesNotExist, Follower.MultipleObjectsReturned):
+        except Follower.DoesNotExist:
             Follower.objects.create(user_id=user_id, follower_user_id=follower_user.id)
+
+        except Follower.MultipleObjectsReturned:
+            Follower.objects.filter(user_id=user_id, follower_user_id=follower_user.id).delete()
 
         return redirect(reverse('your-profile', kwargs={"user_id": user.id}))
 
@@ -519,7 +538,7 @@ class AddFollowerView(View):
 
 class TopView(View):
     def get(self, request):
-        repeated = Rewrite.objects.values('post').annotate(Count('id')).order_by().filter(id__count__gt=0)[:10]
+        repeated = Rewrite.objects.values('post').annotate(Count('id')).order_by('-id__count').filter(id__count__gt=0)[:10]
         posts = Post.objects.all()
         own = request.user
         return render(request, "top.html",
@@ -532,7 +551,7 @@ class TopView(View):
 
 class FollowersView(LoginRequiredMixin, View):
     def get(self, request, user_id):
-        profile = Profile.objects.get(user_id=user_id)
+        profile = Profile.objects.get(user=user_id)
         user_photo = profile.avatar
         user = User.objects.get(id=user_id)
         own = request.user
@@ -571,7 +590,7 @@ class FollowersView(LoginRequiredMixin, View):
                     "user": user,
                     "followers": followers,
                     "own": own,
-                    "can_follow": Follower.objects.filter(user_id=user_id, follower_user_id=own.id).exists(),
+                    "can_follow": not Follower.objects.filter(user_id=user_id, follower_user_id=own.id).exists(),
                     "number_of_following": number_of_following,
                     "number_of_followers": number_of_followers,
                     "number_of_following_my": number_of_following_my,
@@ -582,7 +601,7 @@ class FollowersView(LoginRequiredMixin, View):
                 "user_photo": user_photo,
                 "user": user,
                 "own": own,
-                "can_follow": Follower.objects.filter(user_id=user_id, follower_user_id=own.id).exists(),
+                "can_follow": not Follower.objects.filter(user_id=user_id, follower_user_id=own.id).exists(),
                 "number_of_following": number_of_following,
                 "number_of_followers": number_of_followers,
                 "number_of_following_my": number_of_following_my,
@@ -592,7 +611,7 @@ class FollowersView(LoginRequiredMixin, View):
 
 class FollowingsView(LoginRequiredMixin, View):
     def get(self, request, user_id):
-        profile = Profile.objects.get(user_id=user_id)
+        profile = Profile.objects.get(user=user_id)
         user_photo = profile.avatar
         user = User.objects.get(id=user_id)
         own = request.user
@@ -630,7 +649,7 @@ class FollowingsView(LoginRequiredMixin, View):
                     "user": user,
                     "followings": followings,
                     "own": own,
-                    "can_follow": Follower.objects.filter(user_id=user_id, follower_user_id=own.id).exists(),
+                    "can_follow": not Follower.objects.filter(user_id=user_id, follower_user_id=own.id).exists(),
                     "number_of_following": number_of_following,
                     "number_of_followers": number_of_followers,
                     "number_of_following_my": number_of_following_my,
@@ -641,7 +660,7 @@ class FollowingsView(LoginRequiredMixin, View):
                 "user_photo": user_photo,
                 "user": user,
                 "own": own,
-                "can_follow": Follower.objects.filter(user_id=user_id, follower_user_id=own.id).exists(),
+                "can_follow": not Follower.objects.filter(user_id=user_id, follower_user_id=own.id).exists(),
                 "number_of_following": number_of_following,
                 "number_of_followers": number_of_followers,
                 "number_of_following_my": number_of_following_my,

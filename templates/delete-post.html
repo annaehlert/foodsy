@@ -1,0 +1,29 @@
+{% extends 'common.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}Edytuj post{% endblock %}
+
+
+{% block content %}
+<div class="jumbotron">
+  <h5>Czy na pewno chcesz skasować poniższy post?</h5>
+  <p class="lead">
+      <img class="pull-left" src="{% get_static_prefix %}{{ post.image.url }}" alt="img" width="300px" height="300px"/></a>
+
+    <div class="media-body" style="padding-left:4.00em;">
+            <h1 class="media-heading" id="post{{ post.id }}">{{ post.description }}</h1>
+    <p>{{ post.date }}</p>
+
+  </p>
+</div>
+<div>
+    <form method="POST" action="{% url 'delete-post' user_id=user.id post_id=post.id %}" class="form" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form|crispy }}
+    <button type="submit" class="btn btn-success">Skasuj</button>
+    </form>
+</div>
+
+
+{% endblock %}

@@ -1,5 +1,6 @@
 {% extends 'common.html' %}
 {% load static %}
+{% load crispy_forms_tags %}
 
 {% block title %} Panel {% endblock %}
 
@@ -27,15 +28,13 @@
                       <li class="nav-item">
     <a class="nav-link active" href="{% url 'logout' %}">Wyloguj</a>
   </li>
-{#        <img class="rounded-circle z-depth-6" src="{% get_static_prefix %}{{ user.user.avatar.url }}" alt="img" width="50px" height="50px" />#}
 </ul>
     {% endif %}
 
-{#<div class="jumbotron display-4">#}
+
     <div class="jumbotron jumbotron-fluid">
     <div class="container">
 
-{#    <h1 class="text-center">FOODSY</h1>#}
 
     <p class="lead text-center">Uwielbiasz gotować i chcesz się tym podzielić z innymi?</p>
     <p class="lead text-center">Nie masz pomysłu na śniadanie?</p>
@@ -55,8 +54,11 @@
 
                  <form method="get">
                      <h5 class="text-center">
-                    {{ filter.form }}
+                         <div class="custom-control custom-control-inline custom-checkbox text-left">
+                    {{ filter.form | crispy }}
+                             </div>
                     <button type="submit" class="btn btn-secondary">Szukaj</button>
+
                 </h5>
                  </form>
 
@@ -80,26 +82,11 @@
     <h5 class="card-title">{{ post.description}}</h5>
 
     <p class="card-text" style="height: 3rem;"> {% for category in post.category.all %} #{{ category.category }} {% endfor %}</p>
-{#    <p class="card-text" style="height: 3rem;"> {{ post.category }}</p>#}
 
 
   </div>
 </div>
 
-{#  <div class="col-xs-6 col-sm-3">#}
-{##}
-{#    <div class="thumbnail">#}
-{#      <a href="{% url 'details' post_id=post.id %}" >#}
-{#        <img src="{% get_static_prefix %}{{ post.image.url }}" alt="{{ post.description }}" width="200px" height="200px">#}
-{#              </a>#}
-{#          <div class="caption">#}
-{#          <p>{{ post.description}}</p>#}
-{#          <p>{{ post }}</p>#}
-{#        </div>#}
-{##}
-{#    </div>#}
-{#  {% endif %}#}
-{#  </div>#}
 
                   {% empty %}
         <div class="card-block px-lg-5"><p>Nie znaleźliśmy takiego przepisu</p></div>

@@ -7,7 +7,7 @@
 
 {% for following in followings %}
 <div data-spy="scroll" data-target="#navbar-example2" data-offset="0">
-      <p>{{ following.follower_user.user_id.username }}</p>
+      <p>{{ following.follower_user.user.username }}</p>
 
 <div class="media">
     <span class="media-left">
@@ -15,7 +15,7 @@
             <img class="pull-left" src="{% get_static_prefix %}{{ following.follower_user.avatar.url }}" alt="{{ following.follower_user.avatar.url }}"  width="300px" height="300px"/></a>
     </span>
     <div class="media-body" style="padding-left:4.00em;">
-            <h1 class="media-heading" id="follower{{ following.follower_user.user_id }}">{{ following.follower_user.user_id.firstname }} {{ following.follower_user.user_id.lastname }}</h1>
+            <h1 class="media-heading" id="follower{{ following.follower_user.user }}">{{ following.follower_user.user.firstname }} {{ following.follower_user.user.lastname }}</h1>
   <p>ilość przepisów: {{ following.follower_user.post.all|length }}</p>
     </div>
     </div>

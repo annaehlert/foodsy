@@ -27,7 +27,7 @@
                       <li class="nav-item">
     <a class="nav-link active" href="{% url 'logout' %}">Wyloguj</a>
   </li>
-{#        <img class="rounded-circle z-depth-6" src="{% get_static_prefix %}{{ user.user.avatar.url }}" alt="img" width="50px" height="50px" />#}
+
 </ul>
     {% endif %}
 <div class="card text-center">
@@ -51,23 +51,19 @@
     <button type="submit" class="btn btn-outline-secondary rounded-0 pt-0 pb-0 pr-4 pl-4"><strong>Przepisz</button>
          <div>Przepisało:{{ number }}</div>
      {% endif %}
- </p></form>
+ </p>
+              </form>
 
-
-{#              <form method="POST" action="" class="form" enctype="multipart/form-data">#}
-{#        {% csrf_token %}#}
-{#        {{ form }}#}
-{#    <a class="btn btn-outline-secondary" href="{% url 'details' post_id=post.id %}" >Przepisz</a>#}
       </div>
 
   </div>
       <div class="card-body">
       	<div class="row h-100 justify-content-center align-items-center">
 		<div class="col-xs-6">
-                    <img class="rounded-circle" src="{% get_static_prefix %}{{ post.author.avatar.url }}" alt="{{ post.author.user_id.username }}" width="50px" height="50px"  />
+                    <img class="rounded-circle" src="{% get_static_prefix %}{{ post.author.avatar.url }}" alt="{{ post.author.user.username }}" width="50px" height="50px"  />
             		</div>
 		<div class="col-xs-6 text-left">
-<a class="card-text" href="{% url 'your-profile' user_id=post.author.user_id_id %}">{{ post.author.user_id.username }}</a><br>
+<a class="card-text" href="{% url 'your-profile' user_id=post.author.user.id %}">{{ post.author.user.username }}</a><br>
 <small>Data publikacji: {{ post.date }}</small>
         </div>
 
@@ -97,15 +93,15 @@
                         {% for comment in comments %}
                         <li class="media">
                             <span class="media-left">
-                            <a href="{% url 'your-profile' user_id=comment.author.user_id_id %}" class="pull-left">
-                                <img class="rounded-circle" src="{% get_static_prefix %}{{ comment.author.avatar.url }}" alt="{{ comment.author.user_id.username }}" width="40px" height="40px" />
+                            <a href="{% url 'your-profile' user_id=comment.author.user.id %}" class="pull-left">
+                                <img class="rounded-circle" src="{% get_static_prefix %}{{ comment.author.avatar.url }}" alt="{{ comment.author.user.username }}" width="40px" height="40px" />
                             </a>
                             </span>
                             <div class="media-body" style="padding-left: 2.00em">
                                 <span class="text-muted pull-right">
                                     <small class="text-muted">{{ comment.date }}</small>
                                 </span>
-                                <strong class="text-success">{{ comment.author.user_id.username }}</strong>
+                                <strong class="text-success">{{ comment.author.user.username }}</strong>
                                 <p>
                                     {{ comment.content }}
                                 </p>

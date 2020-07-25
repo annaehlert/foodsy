@@ -25,15 +25,14 @@
                       <li class="nav-item">
     <a class="nav-link active" href="{% url 'logout' %}">Wyloguj</a>
   </li>
-{#        <img class="rounded-circle z-depth-6" src="{% get_static_prefix %}{{ user.user.avatar.url }}" alt="img" width="50px" height="50px" />#}
+
 </ul>
     {% endif %}
 
-{#<div class="jumbotron display-4">#}
+
     <div class="jumbotron jumbotron-fluid">
     <div class="container">
 
-{#    <h1 class="text-center">FOODSY</h1>#}
 
     <p class="lead text-center">Top 10 najchętniej przepisywanych przepisów</p>
 
@@ -52,7 +51,7 @@
     {% if post.id == item.post %}
         <div class="card" style="width: 18rem;">
                               <a href="{% url 'details' post_id=post.id %}">
-        <img src="{% get_static_prefix %}{{ post.image.url }}" class="card-img-top " alt="{{ post.description }}" width="50px">
+        <img src="{% get_static_prefix %}{{ post.image.url }}" class="card-img-top " alt="{{ post.description }}" width="50px" height="250px">
   </a>
           <div class="card-body">
     <h5 class="card-title">Przepis: {{ post.description }}</h5>

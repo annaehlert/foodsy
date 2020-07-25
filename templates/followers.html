@@ -2,15 +2,13 @@
 {% load static %}
 
 
-
-
 {% block endcontent %}
 
 <div class="container">
 
 {% for follower in followers %}
 <div data-spy="scroll" data-target="#navbar-example2" data-offset="0">
-      <p>{{ follower.user.user_id.username }}</p>
+      <p>{{ follower.user.user.username }}</p>
 
 <div class="media">
     <span class="media-left">
@@ -18,7 +16,7 @@
             <img class="pull-left" src="{% get_static_prefix %}{{ follower.user.avatar.url }}" alt="{{ follower.user.avatar.url }}"  width="300px" height="300px"/></a>
     </span>
     <div class="media-body" style="padding-left:4.00em;">
-            <h1 class="media-heading" id="follower{{ follower.id }}">{{ follower.user.user_id.firstname }} {{ follower.user.user_id.lastname }}</h1>
+            <h1 class="media-heading" id="follower{{ follower.id }}">{{ follower.user.user.firstname }} {{ follower.user.user.lastname }}</h1>
   <p>ilość przepisów: {{ follower.user.post.all|length }}</p>
     </div>
     </div>

@@ -74,3 +74,8 @@ class AddCommentForm(forms.ModelForm):
         model = Comment
         fields = ['content']
 
+class DeletePostForm(forms.ModelForm):
+    class Meta:
+        model = Post
+        fields = ['description']
+        widgets = {'description': forms.HiddenInput()}

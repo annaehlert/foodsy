@@ -54,7 +54,7 @@
         <img src="{% get_static_prefix %}{{ post.image.url }}" class="card-img-top " alt="{{ post.description }}" width="50px" height="250px">
   </a>
           <div class="card-body">
-    <h5 class="card-title">Przepis: {{ post.description }}</h5>
+    <h5 class="card-title">{{ post.description }}</h5>
     <p class="card-text">Liczba przepisań: {{ item.id__count }}</p>
   </div>
 </div>

@@ -152,66 +152,44 @@ class ProfileView(LoginRequiredMixin, View):
         number_of_followers_my = len(Follower.objects.filter(user_id=own.id))
         number_of_following = len(Follower.objects.filter(follower_user_id=user_id))
         number_of_followers = len(Follower.objects.filter(user_id=user_id))
+        ctx = {
+            "user_photo": user_photo,
+            "user": user,
+            "own": own,
+            "number_of_following": number_of_following,
+            "number_of_followers": number_of_followers,
+            "number_of_following_my": number_of_following_my,
+            "number_of_followers_my": number_of_followers_my
+        }
+
+
         if own.id == user_id:
             if posts:
-                return render(request, "profile.html", {
-                    "user_photo": user_photo,
-                    "user": user,
-                    "posts": posts,
-                    "own": own,
-                    "number_of_following": number_of_following,
-                    "number_of_followers": number_of_followers,
-                    "number_of_following_my": number_of_following_my,
-                    "number_of_followers_my": number_of_followers_my
-                })
+                ctx['posts'] = posts
+                return render(request, "profile.html", ctx)
 
-            return render(request, "profile.html", {
-                "user_photo": user_photo,
-                "user": user,
-                "own": own,
-                "number_of_following": number_of_following,
-                "number_of_followers": number_of_followers,
-                "number_of_following_my": number_of_following_my,
-                "number_of_followers_my": number_of_followers_my
-            })
+            return render(request, "profile.html", ctx)
         else:
             if posts:
-                return render(request, "profile.html", {
-                    "user_photo": user_photo,
-                    "user": user,
-                    "posts": posts,
-                    "own": own,
-                    "can_follow": not Follower.objects.filter(user_id=user_id, follower_user_id=own.id).exists(),
-                    "number_of_following": number_of_following,
-                    "number_of_followers": number_of_followers,
-                    "number_of_following_my": number_of_following_my,
-                    "number_of_followers_my": number_of_followers_my
-                })
-
-            return render(request, "profile.html", {
-                "user_photo": user_photo,
-                "user": user,
-                "own": own,
-                "can_follow": not Follower.objects.filter(user_id=user_id, follower_user_id=own.id).exists(),
-                "number_of_following": number_of_following,
-                "number_of_followers": number_of_followers,
-                "number_of_following_my": number_of_following_my,
-                "number_of_followers_my": number_of_followers_my
-            })
+                ctx['posts'] = posts
+                ctx['can_follow'] = not Follower.objects.filter(user_id=user_id, follower_user_id=own.id).exists()
+                return render(request, "profile.html", ctx)
+            ctx['can_follow'] = not Follower.objects.filter(user_id=user_id, follower_user_id=own.id).exists()
+            return render(request, "profile.html", ctx)
 
 
 class ProfilePictureEdit(LoginRequiredMixin, View):
     def get(self, request, user_id):
         profile = Profile.objects.get(user=user_id)
         user = User.objects.get(id=user_id)
-        form = ChangePhotoForm()
         own = request.user
-        return render(request, "change-profile-picture.html", {
-            "form": form,
+        ctx = {
+            "form": ChangePhotoForm(),
             "user": user,
             "profile": profile,
             "own": own
-        })
+        }
+        return render(request, "change-profile-picture.html", ctx)
 
     def post(self, request, user_id):
         profile = Profile.objects.get(user=user_id)
@@ -219,12 +197,13 @@ class ProfilePictureEdit(LoginRequiredMixin, View):
         form = ChangePhotoForm(request.POST, request.FILES)
         own = request.user
         if not form.is_valid():
-            return render(request, "change-profile-picture.html", {
+            ctx = {
                 "form": ChangePhotoForm(),
                 "user": user,
                 "profile": profile,
                 "own": own
-            })
+            }
+            return render(request, "change-profile-picture.html", ctx)
         image = request.FILES.get('image')
         if image is not None:
             photo = image.name
@@ -343,29 +322,20 @@ class DetailPostView(View):
         own = request.user
         rewrite = Rewrite.objects.filter(user_id=own.id, post_id=post_id)
         number = len(Rewrite.objects.filter(post_id=post_id))
+        ctx = {
+            "post": post,
+            "comments": comments,
+            "number": number,
+            "own": own
+        }
         if own.id == post.author_id:
-            return render(request, "detail-post.html", {
-                "post": post,
-                "comments": comments,
-                "mine": "mine",
-                "number": number,
-                "own": own
-            })
+            ctx['mine'] = "mine"
+            return render(request, "detail-post.html", ctx)
         if rewrite:
-            return render(request, "detail-post.html", {
-                "post": post,
-                "comments": comments,
-                "remove": "remove",
-                "number": number,
-                "own": own
-            })
+            ctx['remove'] = "remove"
+            return render(request, "detail-post.html", ctx)
         else:
-            return render(request, "detail-post.html", {
-                "post": post,
-                "comments": comments,
-                "number": number,
-                "own": own
-            })
+            return render(request, "detail-post.html", ctx)
 
     def post(self, request, post_id):
         rewrite = request.POST.get('rewrite')
@@ -373,38 +343,31 @@ class DetailPostView(View):
         user = request.user
         comments = Comment.objects.filter(post_id=post_id)
         own = request.user
+        ctx = {
+            "post": post,
+            "comments": comments,
+            "own": own
+        }
         try:
             if rewrite == "delete":
                 rewrited = Rewrite.objects.filter(user_id=user.id, post_id=post_id)
                 rewrited.delete()
                 number = len(Rewrite.objects.filter(post_id=post_id))
-                return render(request, "detail-post.html", {
-                    "post": post,
-                    "comments": comments,
-                    "number": number,
-                    "own": own
-                })
+                ctx['number'] = number
+                return render(request, "detail-post.html", ctx)
             else:
                 new_rewrite = Rewrite.objects.create(user_id=user.id, post_id=post_id)
                 new_rewrite.save()
                 number = len(Rewrite.objects.filter(post_id=post_id))
-                return render(request, "detail-post.html", {
-                    "post": post,
-                    "comments": comments,
-                    "remove": "remove",
-                    "number": number,
-                    "own": own
-                })
+                ctx['number'] = number
+                ctx['remove'] = 'remove'
+                return render(request, "detail-post.html", ctx)
 
         except IntegrityError:
             number = len(Rewrite.objects.filter(post_id=post_id))
-            return render(request, "detail-post.html", {
-                "post": post,
-                "comments": comments,
-                "remove": "remove",
-                "number": number,
-                "own": own
-            })
+            ctx['remove'] = 'remove'
+            ctx['number'] = number
+            return render(request, "detail-post.html", ctx)
 
 
 class OtherPostsView(LoginRequiredMixin, View):
@@ -418,54 +381,29 @@ class OtherPostsView(LoginRequiredMixin, View):
         number_of_followers_my = len(Follower.objects.filter(user_id=own.id))
         number_of_following = len(Follower.objects.filter(follower_user_id=user_id))
         number_of_followers = len(Follower.objects.filter(user_id=user_id))
-
+        ctx = {
+            "user_photo": user_photo,
+            "user": user,
+            "own": own,
+            "number_of_following": number_of_following,
+            "number_of_followers": number_of_followers,
+            "number_of_following_my": number_of_following_my,
+            "number_of_followers_my": number_of_followers_my
+        }
         if own.id == user_id:
             if rewrites:
-                return render(request, "others-posts.html", {
-                    "user_photo": user_photo,
-                    "user": user,
-                    "rewrites": rewrites,
-                    "own": own,
-                    "number_of_following": number_of_following,
-                    "number_of_followers": number_of_followers,
-                    "number_of_following_my": number_of_following_my,
-                    "number_of_followers_my": number_of_followers_my
-                })
+                ctx['rewrites'] = rewrites
+                return render(request, "others-posts.html", ctx)
 
-            return render(request, "others-posts.html", {
-                "user_photo": user_photo,
-                "user": user,
-                "own": own,
-                "number_of_following": number_of_following,
-                "number_of_followers": number_of_followers,
-                "number_of_following_my": number_of_following_my,
-                "number_of_followers_my": number_of_followers_my
-            })
+            return render(request, "others-posts.html", ctx)
         else:
-            print("wchodzimy")
             if rewrites:
-                return render(request, "others-posts.html", {
-                    "user_photo": user_photo,
-                    "user": user,
-                    "rewrites": rewrites,
-                    "own": own,
-                    "can_follow": not Follower.objects.filter(user_id=user_id, follower_user_id=own.id).exists(),
-                    "number_of_following": number_of_following,
-                    "number_of_followers": number_of_followers,
-                    "number_of_following_my": number_of_following_my,
-                    "number_of_followers_my": number_of_followers_my
-                })
+                ctx['rewrites'] = rewrites
+                ctx['can_follow'] = not Follower.objects.filter(user_id=user_id, follower_user_id=own.id).exists()
+                return render(request, "others-posts.html", ctx)
 
-            return render(request, "others-posts.html", {
-                "user_photo": user_photo,
-                "user": user,
-                "own": own,
-                "can_follow": not Follower.objects.filter(user_id=user_id, follower_user_id=own.id).exists(),
-                "number_of_following": number_of_following,
-                "number_of_followers": number_of_followers,
-                "number_of_following_my": number_of_following_my,
-                "number_of_followers_my": number_of_followers_my
-            })
+            ctx['can_follow'] = not Follower.objects.filter(user_id=user_id, follower_user_id=own.id).exists()
+            return render(request, "others-posts.html", ctx)
 
 
 class AllProfileView(LoginRequiredMixin, View):
@@ -484,7 +422,7 @@ class AddCommentView(LoginRequiredMixin, View):
     def get(self, request, post_id):
         form = AddCommentForm()
         post = Post.objects.get(id=post_id)
-        user = post.author.user_id
+        user = post.author.user
         return render(request, "add-comment.html", {
             "form": form,
             "post": post,
@@ -560,53 +498,30 @@ class FollowersView(LoginRequiredMixin, View):
         number_of_followers_my = len(Follower.objects.filter(user_id=own.id))
         number_of_following = len(Follower.objects.filter(follower_user_id=user_id))
         number_of_followers = len(Follower.objects.filter(user_id=user_id))
+        ctx = {
+            "user_photo": user_photo,
+            "user": user,
+            "own": own,
+            "number_of_following": number_of_following,
+            "number_of_followers": number_of_followers,
+            "number_of_following_my": number_of_following_my,
+            "number_of_followers_my": number_of_followers_my
+        }
 
         if own.id == user_id:
             if followers:
-                return render(request, "followers.html", {
-                    "user_photo": user_photo,
-                    "user": user,
-                    "followers": followers,
-                    "own": own,
-                    "number_of_following": number_of_following,
-                    "number_of_followers": number_of_followers,
-                    "number_of_following_my": number_of_following_my,
-                    "number_of_followers_my": number_of_followers_my
-                })
+                ctx['followers'] = followers
+                return render(request, "followers.html", ctx)
 
-            return render(request, "followers.html", {
-                "user_photo": user_photo,
-                "user": user,
-                "own": own,
-                "number_of_following": number_of_following,
-                "number_of_followers": number_of_followers,
-                "number_of_following_my": number_of_following_my,
-                "number_of_followers_my": number_of_followers_my
-            })
+            return render(request, "followers.html", ctx)
         else:
             if followers:
-                return render(request, "followers.html", {
-                    "user_photo": user_photo,
-                    "user": user,
-                    "followers": followers,
-                    "own": own,
-                    "can_follow": not Follower.objects.filter(user_id=user_id, follower_user_id=own.id).exists(),
-                    "number_of_following": number_of_following,
-                    "number_of_followers": number_of_followers,
-                    "number_of_following_my": number_of_following_my,
-                    "number_of_followers_my": number_of_followers_my
-                })
+                ctx['followers'] = followers
+                ctx['can_follow'] = not Follower.objects.filter(user_id=user_id, follower_user_id=own.id).exists()
+                return render(request, "followers.html", ctx)
 
-            return render(request, "followers.html", {
-                "user_photo": user_photo,
-                "user": user,
-                "own": own,
-                "can_follow": not Follower.objects.filter(user_id=user_id, follower_user_id=own.id).exists(),
-                "number_of_following": number_of_following,
-                "number_of_followers": number_of_followers,
-                "number_of_following_my": number_of_following_my,
-                "number_of_followers_my": number_of_followers_my
-            })
+            ctx['can_follow'] = not Follower.objects.filter(user_id=user_id, follower_user_id=own.id).exists()
+            return render(request, "followers.html", ctx)
 
 
 class FollowingsView(LoginRequiredMixin, View):
@@ -620,49 +535,26 @@ class FollowingsView(LoginRequiredMixin, View):
         number_of_followers_my = len(Follower.objects.filter(user_id=own.id))
         number_of_following = len(Follower.objects.filter(follower_user_id=user_id))
         number_of_followers = len(Follower.objects.filter(user_id=user_id))
+        ctx = {
+            "user_photo": user_photo,
+            "user": user,
+            "own": own,
+            "number_of_following": number_of_following,
+            "number_of_followers": number_of_followers,
+            "number_of_following_my": number_of_following_my,
+            "number_of_followers_my": number_of_followers_my
+        }
         if own.id == user_id:
             if followings:
-                return render(request, "following.html", {
-                    "user_photo": user_photo,
-                    "user": user,
-                    "followings": followings,
-                    "own": own,
-                    "number_of_following": number_of_following,
-                    "number_of_followers": number_of_followers,
-                    "number_of_following_my": number_of_following_my,
-                    "number_of_followers_my": number_of_followers_my
-                })
+                ctx ['followings'] = followings
+                return render(request, "following.html", ctx)
 
-            return render(request, "following.html", {
-                "user_photo": user_photo,
-                "user": user,
-                "own": own,
-                "number_of_following": number_of_following,
-                "number_of_followers": number_of_followers,
-                "number_of_following_my": number_of_following_my,
-                "number_of_followers_my": number_of_followers_my
-            })
+            return render(request, "following.html", ctx)
         else:
             if followings:
-                return render(request, "following.html", {
-                    "user_photo": user_photo,
-                    "user": user,
-                    "followings": followings,
-                    "own": own,
-                    "can_follow": not Follower.objects.filter(user_id=user_id, follower_user_id=own.id).exists(),
-                    "number_of_following": number_of_following,
-                    "number_of_followers": number_of_followers,
-                    "number_of_following_my": number_of_following_my,
-                    "number_of_followers_my": number_of_followers_my
-                })
+                ctx['followings'] = followings
+                ctx['can_follow'] = not Follower.objects.filter(user_id=user_id, follower_user_id=own.id).exists()
+                return render(request, "following.html", ctx)
 
-            return render(request, "following.html", {
-                "user_photo": user_photo,
-                "user": user,
-                "own": own,
-                "can_follow": not Follower.objects.filter(user_id=user_id, follower_user_id=own.id).exists(),
-                "number_of_following": number_of_following,
-                "number_of_followers": number_of_followers,
-                "number_of_following_my": number_of_following_my,
-                "number_of_followers_my": number_of_followers_my
-            })
+            ctx['can_follow'] = not Follower.objects.filter(user_id=user_id, follower_user_id=own.id).exists()
+            return render(request, "following.html", ctx)

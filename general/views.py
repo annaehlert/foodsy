@@ -107,7 +107,6 @@ class AddUserView(View):
         return redirect('login')
 
 
-
 class ChangePasswordView(LoginRequiredMixin, View):
     def get(self, request, user_id):
         user = User.objects.get(id=user_id)
@@ -115,7 +114,6 @@ class ChangePasswordView(LoginRequiredMixin, View):
             "form": ChangePasswordForm(),
             "user": user
         })
-
 
     def post(self, request, user_id):
         form = ChangePasswordForm(request.POST)
@@ -148,10 +146,10 @@ class ProfileView(LoginRequiredMixin, View):
         user = User.objects.get(id=user_id)
         posts = Post.objects.filter(author_id=user_id)
         own = request.user
-        number_of_following_my = len(Follower.objects.filter(follower_user_id=own.id))
-        number_of_followers_my = len(Follower.objects.filter(user_id=own.id))
-        number_of_following = len(Follower.objects.filter(follower_user_id=user_id))
-        number_of_followers = len(Follower.objects.filter(user_id=user_id))
+        number_of_following_my = Follower.objects.filter(follower_user_id=own.id).count()
+        number_of_followers_my = Follower.objects.filter(user_id=own.id).count()
+        number_of_following = Follower.objects.filter(follower_user_id=user_id).count()
+        number_of_followers = Follower.objects.filter(user_id=user_id).count()
         ctx = {
             "user_photo": user_photo,
             "user": user,
@@ -161,7 +159,6 @@ class ProfileView(LoginRequiredMixin, View):
             "number_of_following_my": number_of_following_my,
             "number_of_followers_my": number_of_followers_my
         }
-
 
         if own.id == user_id:
             if posts:
@@ -304,8 +301,6 @@ class DeletePostView(LoginRequiredMixin, View):
             "post": post
         })
 
-
-
     def post(self, request, user_id, post_id):
         user = User.objects.get(id=user_id)
         post = Post.objects.get(id=post_id)
@@ -315,7 +310,7 @@ class DeletePostView(LoginRequiredMixin, View):
         return redirect(reverse('your-profile', kwargs={"user_id": user.id}))
 
 
-class DetailPostView(View):
+class DetailPostView(LoginRequiredMixin, View):
     def get(self, request, post_id):
         post = Post.objects.get(id=post_id)
         comments = Comment.objects.filter(post_id=post_id)
@@ -377,10 +372,10 @@ class OtherPostsView(LoginRequiredMixin, View):
         user = User.objects.get(id=user_id)
         own = request.user
         rewrites = Rewrite.objects.filter(user_id=user_id)
-        number_of_following_my = len(Follower.objects.filter(follower_user_id=own.id))
-        number_of_followers_my = len(Follower.objects.filter(user_id=own.id))
-        number_of_following = len(Follower.objects.filter(follower_user_id=user_id))
-        number_of_followers = len(Follower.objects.filter(user_id=user_id))
+        number_of_following_my = Follower.objects.filter(follower_user_id=own.id).count()
+        number_of_followers_my = Follower.objects.filter(user_id=own.id).count()
+        number_of_following = Follower.objects.filter(follower_user_id=user_id).count()
+        number_of_followers = Follower.objects.filter(user_id=user_id).count()
         ctx = {
             "user_photo": user_photo,
             "user": user,
@@ -448,7 +443,7 @@ class AddCommentView(LoginRequiredMixin, View):
         return redirect(reverse('details', kwargs={"post_id": post_id}))
 
 
-class AddFollowerView(View):
+class AddFollowerView(LoginRequiredMixin, View):
 
     def post(self, request, user_id):
         try:
@@ -474,7 +469,7 @@ class AddFollowerView(View):
 
 
 
-class TopView(View):
+class TopView(LoginRequiredMixin, View):
     def get(self, request):
         repeated = Rewrite.objects.values('post').annotate(Count('id')).order_by('-id__count').filter(id__count__gt=0)[:10]
         posts = Post.objects.all()
@@ -494,10 +489,10 @@ class FollowersView(LoginRequiredMixin, View):
         user = User.objects.get(id=user_id)
         own = request.user
         followers = Follower.objects.filter(follower_user_id=user_id)
-        number_of_following_my = len(Follower.objects.filter(follower_user_id=own.id))
-        number_of_followers_my = len(Follower.objects.filter(user_id=own.id))
-        number_of_following = len(Follower.objects.filter(follower_user_id=user_id))
-        number_of_followers = len(Follower.objects.filter(user_id=user_id))
+        number_of_following_my = Follower.objects.filter(follower_user_id=own.id).count()
+        number_of_followers_my = Follower.objects.filter(user_id=own.id).count()
+        number_of_following = Follower.objects.filter(follower_user_id=user_id).count()
+        number_of_followers = Follower.objects.filter(user_id=user_id).count()
         ctx = {
             "user_photo": user_photo,
             "user": user,
@@ -531,10 +526,10 @@ class FollowingsView(LoginRequiredMixin, View):
         user = User.objects.get(id=user_id)
         own = request.user
         followings = Follower.objects.filter(user_id=user_id)
-        number_of_following_my = len(Follower.objects.filter(follower_user_id=own.id))
-        number_of_followers_my = len(Follower.objects.filter(user_id=own.id))
-        number_of_following = len(Follower.objects.filter(follower_user_id=user_id))
-        number_of_followers = len(Follower.objects.filter(user_id=user_id))
+        number_of_following_my = Follower.objects.filter(follower_user_id=own.id).count()
+        number_of_followers_my = Follower.objects.filter(user_id=own.id).count()
+        number_of_following = Follower.objects.filter(follower_user_id=user_id).count()
+        number_of_followers = Follower.objects.filter(user_id=user_id).count()
         ctx = {
             "user_photo": user_photo,
             "user": user,

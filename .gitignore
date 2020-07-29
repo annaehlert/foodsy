@@ -1,6 +1,6 @@
 # Django #
 
-local_settings.py
+.local_settings.py
 *.log
 *.pot
 *.pyc

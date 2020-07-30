@@ -42,10 +42,11 @@ class AddPostForm(forms.Form):
     image = forms.ImageField(label="Zdjęcie")
     description = forms.CharField(max_length=255, label="nazwa przepisu")
     recipe = forms.CharField(label="przepis", widget=forms.Textarea)
-    category = forms.MultipleChoiceField(
-        label="kategoria",
+    category = forms.ModelMultipleChoiceField(
+        label="Kategoria",
         widget=forms.CheckboxSelectMultiple,
-        choices=[(c.pk, c.category) for c in Category.objects.all()]
+        queryset=Category.objects.all(),
+        to_field_name='category',
     )
 
 

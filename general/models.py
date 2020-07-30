@@ -10,6 +10,9 @@ class Profile(models.Model):
 class Category(models.Model):
     category = models.CharField(verbose_name="kategoria", max_length=20, null=True)
 
+    def __str__(self):
+        return self.category
+
 
 class Post(models.Model):
     author = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="post")

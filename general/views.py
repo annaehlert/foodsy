@@ -241,7 +241,7 @@ class AddPostView(LoginRequiredMixin, View):
                     destination.write(chunk)
                     new_post = Post.objects.create(author_id=user_id, image=photo, description=description, recipe=recipe)
                     for category in categories:
-                        new_category=Category.objects.get(id=category)
+                        new_category=Category.objects.get(category=category)
                         new_post.category.add(new_category)
         else:
             messages.add_message(request, messages.WARNING, 'Dodaj zdjęcie.')
